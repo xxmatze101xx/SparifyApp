@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meine Sparwelt - Handy App</title>
+    <!-- Lade Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Konfiguriere Tailwind für kinderfreundliche Farben -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-blue': '#4F46E5', // Hauptfarbe: Indigo
+                        'secondary-green': '#10B981', // Akzentfarbe: Emerald (für positive Aktionen)
+                        'accent-pink': '#EC4899', // Warnfarbe: Pink (für Auszahlungen)
+                        'bg-light': '#F3F4F6', // Heller Hintergrund
+                        'card-light': '#FFFFFF',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* HANDY-FORMAT ZWINGER: Stellt sicher, dass die App schmal und zentriert bleibt */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3F4F6;
+            display: flex;
+            justify-content: center; /* Zentriert den App-Container */
+            align-items: flex-start; /* Stellt sicher, dass der Inhalt oben beginnt */
+            min-height: 100vh;
+            padding-bottom: 80px; 
+        }
+        #app {
+            width: 100%;
+            max-width: 500px; /* FIXIERT: Begrenzt die maximale Breite auf 500px */
+            min-height: 100vh;
+            background-color: white;
+            /* Fester Schatten, um den "Handy-Rahmen" auf großen Bildschirmen zu simulieren */
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.2); 
+            position: relative;
+        }
+
+        /* Responsive Anpassung für ECHTE Mobile Bildschirme */
+        @media (max-width: 500px) {
+            #app {
+                max-width: 100%; /* Nimmt die volle Breite auf Handys */
+                box-shadow: none; /* Entfernt den Rahmen auf Handys */
+            }
+            body {
+                padding: 0; /* Kein Padding, wenn es sich um ein echtes Handy handelt */
+            }
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #9CA3AF;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #E5E7EB;
+            border-radius: 10px;
+        }
+        
+        /* Styles for the Bottom Navigation Bar (Minimalist) */
+        #bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 500px; /* FIXIERT: Muss mit #app übereinstimmen, damit es zentriert bleibt */
+            margin: 0 auto;
+            background-color: white;
+            border-top: 1px solid #E5E7EB;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            width: 100%;
+            max-width: 100px;
+            cursor: pointer;
+            transition: color 0.2s;
+            color: #6B7280;
+        }
+        .nav-item.active {
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        
+        <!-- Header -->
+        <header id="app-header" class="bg-primary-blue text-white p-4 shadow-lg sticky top-0 z-10 flex justify-between items-center transition-all duration-300">
+            <button onclick="goBack()" id="back-button" class="text-white hidden transition-all duration-300 transform hover:scale-110">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+            </button>
+            <h1 id="header-title" class="text-xl font-bold transition-all duration-300 mx-auto">Dashboard</h1>
+            <div class="w-6 h-6"></div> <!-- Platzhalter für Zentrierung -->
+        </header>
+
+        <!-- Hauptinhalt der App -->
+        <main id="content" class="p-4 pb-24"></main>
+
+        <!-- Untere Navigationsleiste (Minimalistisch) -->
+        <nav id="bottom-nav">
+            <!-- Nur das Haupt-Dashboard / Sparschweine -->
+            <div class="nav-item active" data-view="dashboard" onclick="navigateTo('dashboard', null)">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3 .895-3 2 1.343 2 3 2m0-8V4m0 12v4m-6-2h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                <span class="text-xs mt-1">Sparschweine</span>
+            </div>
+        </nav>
+
+        <!-- Modals für Eingaben -->
+        <div id="modal-container"></div>
+
+    </div>
+
+    <script>
+        // --- Globale Zustände und Konfiguration ---
+        let currentView = 'dashboard';
+        let selectedPiggyBankId = null; 
+
+        // Simuliere Firebase Firestore Globals (Nicht implementiert)
+        const __app_id = 'kinder-spar-app';
+        const __firebase_config = '{}'; 
+        const __initial_auth_token = 'dummy-token'; 
+        
+        // Dummy-Daten für die App
+        let piggyBanks = [
+            { id: 1, name: "Mein Abenteuer-Sparschwein", balance: 155.45, color: 'bg-yellow-400', icon: '💰', goalId: 101 },
+            { id: 2, name: "Ferienkasse", balance: 42.10, color: 'bg-green-400', icon: '🏝️', goalId: null },
+            { id: 3, name: "Spende für Tiere", balance: 9.75, color: 'bg-pink-400', icon: '🐾', goalId: null },
+        ];
+
+        let goals = [
+            { id: 101, bankId: 1, name: "Neues Fahrrad", targetAmount: 400.00, savedAmount: 50.00, contributionRate: 30, color: 'bg-red-500' },
+            { id: 102, bankId: 1, name: "Videospiel", targetAmount: 60.00, savedAmount: 0.00, contributionRate: 10, color: 'bg-blue-500' },
+        ];
+
+        let budgets = [
+            { id: 201, bankId: 1, name: "Süßigkeiten", limit: 20.00, spent: 5.50, period: "Monat", color: 'bg-purple-500' },
+            { id: 202, bankId: 1, name: "Comics", limit: 10.00, spent: 10.00, period: "Woche", color: 'bg-orange-500' },
+        ];
+
+        let transactions = [
+            { id: 1, bankId: 1, type: 'deposit', amount: 20.00, date: '2025-11-20', description: 'Taschengeld (Automatisch)' },
+            { id: 2, bankId: 1, type: 'deposit', amount: 5.45, date: '2025-11-18', description: 'Oma-Geschenk (Automatisch)' },
+            { id: 3, bankId: 1, type: 'withdrawal', amount: 1.00, date: '2025-11-17', description: 'Kaugummi' },
+            { id: 4, bankId: 2, type: 'deposit', amount: 10.00, date: '2025-11-15', description: 'Taschengeld (Automatisch)' },
+            { id: 5, bankId: 1, type: 'withdrawal', amount: 5.00, date: '2025-11-10', description: 'Kleines Spielzeug' },
+        ];
+
+        // --- Hilfsfunktionen ---
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
+        };
+
+        const getPiggyBank = (id) => piggyBanks.find(b => b.id === id);
+        const getBankTransactions = (id) => transactions.filter(t => t.bankId === id).sort((a, b) => new Date(b.date) - new Date(a.date));
+        const getBankGoals = (id) => goals.filter(g => g.bankId === id);
+        const getBankBudgets = (id) => budgets.filter(b => b.bankId === id);
+
+        // --- Navigationslogik ---
+
+        const updateNav = (activeView) => {
+            // Nur das Dashboard-Icon ist vorhanden
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const isActive = item.getAttribute('data-view') === activeView;
+                item.classList.toggle('active', isActive);
+            });
+        };
+
+        const updateUI = () => {
+            const headerTitle = document.getElementById('header-title');
+            const backButton = document.getElementById('back-button');
+            const appHeader = document.getElementById('app-header');
+            
+            let title = '';
+            let showBackButton = false;
+            
+            // Setze den Header für das Dashboard
+            if (currentView === 'dashboard') {
+                title = 'Meine Sparwelt';
+                showBackButton = false;
+                appHeader.classList.add('bg-primary-blue');
+                appHeader.classList.remove('shadow-none', 'bg-white');
+                backButton.classList.remove('text-primary-blue');
+                backButton.classList.add('text-white');
+                headerTitle.classList.remove('text-gray-800');
+                headerTitle.classList.add('text-white');
+            } 
+            // Setze den Header für die Detailansicht eines Sparschweins oder Unterseiten
+            else {
+                const bank = getPiggyBank(selectedPiggyBankId);
+                title = currentView === 'details' ? (bank ? bank.name : 'Sparschwein Details') : 
+                        currentView === 'goals' ? 'Sparziele verwalten' : 
+                        currentView === 'budgets' ? 'Budget Planer' : 'Alle Aktivitäten';
+                showBackButton = true;
+                appHeader.classList.remove('bg-primary-blue'); 
+                appHeader.classList.add('shadow-lg', 'bg-white');
+                backButton.classList.remove('text-white');
+                backButton.classList.add('text-primary-blue');
+                headerTitle.classList.remove('text-white');
+                headerTitle.classList.add('text-gray-800');
+            }
+
+            headerTitle.textContent = title;
+            backButton.classList.toggle('hidden', !showBackButton);
+            
+            // Untere Nav nur für das Dashboard "aktiv" setzen
+            updateNav('dashboard'); 
+
+            // Rendern des Inhalts
+            switch (currentView) {
+                case 'dashboard':
+                    renderDashboard();
+                    break;
+                case 'details':
+                    renderPiggyBankDetails();
+                    break;
+                case 'goals':
+                    renderGoals();
+                    break;
+                case 'budgets':
+                    renderBudgets();
+                    break;
+                case 'transactions':
+                    renderTransactions();
+                    break;
+                default:
+                    renderDashboard();
+            }
+        };
+
+        const goBack = () => {
+            // Wenn wir in Details sind, gehen wir zum Dashboard zurück
+            if (currentView === 'details') {
+                currentView = 'dashboard';
+                selectedPiggyBankId = null;
+            } 
+            // Wenn wir in Goals, Budgets oder Transactions sind, gehen wir zurück zu den Details
+            else if (['goals', 'budgets', 'transactions'].includes(currentView)) {
+                currentView = 'details';
+            }
+            updateUI();
+        };
+        
+        const navigateTo = (view, id = null) => {
+            if (id) selectedPiggyBankId = id;
+
+            // Logik, um sicherzustellen, dass man nicht ohne Sparschwein auf Ziele/Budget etc. kommt
+            if (['goals', 'budgets', 'transactions'].includes(view) && !selectedPiggyBankId) {
+                currentView = 'dashboard'; 
+            } else {
+                 currentView = view;
+            }
+            updateUI();
+        };
+
+        // --- View 1: Dashboard (Sparschweine) ---
+        const renderDashboard = () => {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <!-- WERBE-PLATZHALTER -->
+                <div class="mb-6 p-4 bg-gray-100 rounded-xl border-2 border-gray-200 text-center shadow-inner">
+                    <p class="text-sm font-semibold text-gray-700">ANZEIGE</p>
+                    <p class="text-xs text-gray-500 mt-1">"Coole Lernspiele für Kinder!" - Jetzt 50% Rabatt!</p>
+                </div>
+
+                <div class="p-2 pt-0">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Wähle dein Sparschwein</h2>
+                    <!-- WICHTIG: Kein grid-cols-2/3 mehr, um das Handyformat zu erhalten -->
+                    <div class="grid grid-cols-1 gap-4"> 
+                        ${piggyBanks.map(bank => `
+                            <div onclick="navigateTo('details', ${bank.id})" 
+                                 class="bg-card-light p-5 rounded-2xl shadow-xl border-b-4 border-primary-blue hover:shadow-2xl transition duration-300 transform hover:scale-[1.01] cursor-pointer">
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-3xl ${bank.color} p-3 rounded-full shadow-md">${bank.icon}</span>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-gray-800">${bank.name}</h3>
+                                        <p class="text-3xl font-extrabold text-secondary-green mt-1">${formatCurrency(bank.balance)}</p>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-3 text-right">Tippen für Übersicht</p>
+                            </div>
+                        `).join('')}
+                        <!-- Kachel für ein neues Sparschwein -->
+                        <div class="bg-gray-100 p-5 rounded-2xl shadow-inner border-2 border-dashed border-gray-300 text-center hover:bg-gray-50 transition duration-300 cursor-pointer">
+                            <div class="flex flex-col items-center justify-center h-full py-4">
+                                <span class="text-4xl text-gray-400 mb-2">➕</span>
+                                <p class="text-lg font-semibold text-gray-500">Neues Sparschwein hinzufügen</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // --- View 2: Sparschwein Details ---
+        const renderPiggyBankDetails = () => {
+            const bank = getPiggyBank(selectedPiggyBankId);
+            if (!bank) { navigateTo('dashboard'); return; }
+
+            const transactionsList = getBankTransactions(bank.id).slice(0, 3); // Nur die letzten 3 anzeigen
+            const goalsList = getBankGoals(bank.id);
+            
+            let goalsHtml = goalsList.length > 0 ? goalsList.slice(0, 1).map(goal => { // Nur das erste Ziel anzeigen
+                const percentage = (goal.savedAmount / goal.targetAmount) * 100;
+                return `
+                    <div class="mt-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-semibold text-gray-700 truncate">${goal.name}</span>
+                            <span class="text-sm font-medium text-primary-blue">${formatCurrency(goal.savedAmount)} / ${formatCurrency(goal.targetAmount)}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full ${goal.color}" style="width: ${Math.min(100, percentage)}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('') : '<p class="text-gray-500 italic text-sm">Noch keine Sparziele festgelegt.</p>';
+            
+            if (goalsList.length > 1) {
+                 goalsHtml += `<p class="text-xs text-gray-500 mt-1">und ${goalsList.length - 1} weitere Ziele...</p>`;
+            }
+
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <!-- Aktueller Kontostand -->
+                <div class="text-center mb-6 p-6 bg-primary-blue rounded-b-3xl shadow-xl -mx-4 mt-[-1rem] text-white">
+                    <p class="text-lg opacity-80">Aktuelles Guthaben</p>
+                    <p class="text-5xl font-extrabold mt-1">${formatCurrency(bank.balance)}</p>
+                    <p class="text-sm mt-2 opacity-80">Einzahlungen sind automatisch.</p>
+                </div>
+
+                <!-- Quick Actions (Nur Auszahlung) -->
+                <div class="grid grid-cols-1 gap-4 mb-8">
+                    <button onclick="openModal('withdrawal')" class="flex flex-col items-center p-4 bg-accent-pink text-white rounded-xl shadow-lg hover:bg-pink-600 transition duration-200 transform hover:scale-[1.02] font-bold text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17L13 7l-2-1m0 11V3m0 0h3v14h3M5 13H2v-4h3m0 0l-1-2h4l-1 2m0 0V3m0 0h3v14h3M5 13h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2z" /></svg>
+                        Manuelle Auszahlung protokollieren
+                    </button>
+                </div>
+
+                <!-- Übersichtskacheln untereinander (auf allen Bildschirmen) -->
+                <div class="grid grid-cols-1 gap-6">
+
+                    <!-- Sparziele Übersicht (Ausschnitt) -->
+                    <div onclick="navigateTo('goals', ${bank.id})" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-red-500 hover:bg-gray-50 cursor-pointer transition">
+                        <h3 class="text-lg font-bold text-red-700 flex justify-between items-center">
+                            🎯 Sparziele
+                            <span class="text-sm font-medium text-red-500">${goalsList.length} Ziele</span>
+                        </h3>
+                        ${goalsHtml}
+                    </div>
+                    
+                    <!-- Budget Planer Übersicht (Ausschnitt) -->
+                    <div onclick="navigateTo('budgets', ${bank.id})" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-purple-500 hover:bg-gray-50 cursor-pointer transition">
+                        <h3 class="text-lg font-bold text-purple-700 flex justify-between items-center">
+                            🗓️ Budget Planer
+                            <span class="text-sm font-medium text-purple-500">${getBankBudgets(bank.id).length} Budgets</span>
+                        </h3>
+                        <p class="text-sm text-gray-500 mt-1">Behalte deine Ausgaben im Blick, damit du dein Budget nicht überschreitest.</p>
+                    </div>
+
+                </div>
+
+                <!-- Transaktionen (Vorschau) -->
+                <div onclick="navigateTo('transactions', ${bank.id})" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-primary-blue mt-6 hover:bg-gray-50 cursor-pointer transition">
+                    <h3 class="text-lg font-bold text-primary-blue flex justify-between items-center mb-3">
+                        📋 Letzte Aktivität
+                        <span class="text-sm font-medium text-primary-blue hover:underline">Alle anzeigen</span>
+                    </h3>
+                    ${transactionsList.map(t => `
+                        <div class="flex justify-between items-center py-2 border-b last:border-b-0">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xl ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">${t.type === 'deposit' ? '🟢' : '🔴'}</span>
+                                <div>
+                                    <p class="font-medium text-gray-800 text-sm">${t.description}</p>
+                                    <p class="text-xs text-gray-500">${new Date(t.date).toLocaleDateString('de-DE')}</p>
+                                </div>
+                            </div>
+                            <span class="font-bold text-sm ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">
+                                ${t.type === 'deposit' ? '+' : '-'} ${formatCurrency(t.amount)}
+                            </span>
+                        </div>
+                    `).join('')}
+                    ${transactionsList.length === 0 ? '<p class="text-center text-gray-500 italic text-sm">Noch keine Bewegungen vorhanden.</p>' : ''}
+                </div>
+            `;
+        };
+
+        // --- View 3: Sparziele verwalten (vom Dashboard/Nav aufgerufen) ---
+        const renderGoals = () => {
+            const bank = getPiggyBank(selectedPiggyBankId);
+            if (!bank) { navigateTo('dashboard'); return; }
+            const bankGoals = getBankGoals(selectedPiggyBankId);
+            const totalContribution = bankGoals.reduce((sum, g) => sum + g.contributionRate, 0);
+
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="flex justify-between items-center mb-6 pt-2">
+                    <h2 class="text-xl font-bold text-gray-700">Sparziele für ${bank.name}</h2>
+                    <button onclick="openModal('addGoal')" class="flex items-center bg-secondary-green text-white px-3 py-1 text-sm rounded-full shadow-md hover:bg-green-600 transition">
+                        <span class="text-lg mr-1">+</span> Ziel
+                    </button>
+                </div>
+
+                <div class="bg-card-light p-5 rounded-xl shadow-lg mb-6 text-center border-b-4 border-red-500">
+                    <p class="text-xl font-extrabold text-red-500">${totalContribution}% Sparrate</p>
+                    <p class="text-sm text-gray-500">Dieser Anteil aller **automatischen** Einzahlungen wird aufgeteilt.</p>
+                </div>
+
+                <!-- WICHTIG: Kein grid-cols-2 mehr, um das Handyformat zu erhalten -->
+                <div class="grid grid-cols-1 gap-4"> 
+                    ${bankGoals.map(goal => {
+                        const percentage = Math.round((goal.savedAmount / goal.targetAmount) * 100);
+                        return `
+                            <div class="p-4 bg-card-light rounded-xl shadow-md border-l-4 border-red-500">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-lg font-bold text-gray-800">${goal.name}</p>
+                                        <p class="text-sm text-gray-500">Beitrag: ${goal.contributionRate}%</p>
+                                    </div>
+                                    <p class="text-xl font-extrabold text-red-500">${formatCurrency(goal.savedAmount)}</p>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="w-full bg-gray-200 rounded-full h-3">
+                                        <div class="h-3 rounded-full ${goal.color}" style="width: ${Math.min(100, percentage)}%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs mt-1 text-gray-500">
+                                        <span>${percentage}% erreicht</span>
+                                        <span class="font-medium">Ziel: ${formatCurrency(goal.targetAmount)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        };
+
+        // --- View 4: Budget Planer (vom Dashboard/Nav aufgerufen) ---
+        const renderBudgets = () => {
+            const bank = getPiggyBank(selectedPiggyBankId);
+            if (!bank) { navigateTo('dashboard'); return; }
+            const bankBudgets = getBankBudgets(selectedPiggyBankId);
+
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="flex justify-between items-center mb-6 pt-2">
+                    <h2 class="text-xl font-bold text-gray-700">Budgets für ${bank.name}</h2>
+                    <button onclick="openModal('addBudget')" class="flex items-center bg-secondary-green text-white px-3 py-1 text-sm rounded-full shadow-md hover:bg-green-600 transition">
+                        <span class="text-lg mr-1">+</span> Budget
+                    </button>
+                </div>
+
+                <!-- WICHTIG: Kein grid-cols-2 mehr, um das Handyformat zu erhalten -->
+                <div class="grid grid-cols-1 gap-4">
+                    ${bankBudgets.map(budget => {
+                        const percentage = Math.round((budget.spent / budget.limit) * 100);
+                        const isOver = percentage > 100;
+                        const colorClass = isOver ? 'bg-red-500' : budget.color;
+                        return `
+                            <div class="p-4 bg-card-light rounded-xl shadow-md border-l-4 ${colorClass.replace('bg-', 'border-')}">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-lg font-bold text-gray-800">${budget.name}</p>
+                                        <p class="text-sm text-gray-500">Limit pro ${budget.period}</p>
+                                    </div>
+                                    <p class="text-xl font-extrabold ${isOver ? 'text-red-600' : 'text-primary-blue'}">${formatCurrency(budget.spent)}</p>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="w-full bg-gray-200 rounded-full h-3">
+                                        <div class="h-3 rounded-full ${colorClass}" style="width: ${Math.min(100, percentage)}%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs mt-1 ${isOver ? 'text-red-500 font-bold' : 'text-gray-500'}">
+                                        <span>${percentage}% ausgegeben</span>
+                                        <span class="font-medium">Limit: ${formatCurrency(budget.limit)}</span>
+                                    </div>
+                                </div>
+                                ${isOver ? '<p class="text-sm text-red-500 font-bold mt-2">🛑 Limit überschritten!</p>' : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        };
+
+        // --- View 5: Transaktionen (vom Dashboard/Nav aufgerufen) ---
+        const renderTransactions = () => {
+            const bank = getPiggyBank(selectedPiggyBankId);
+            if (!bank) { navigateTo('dashboard'); return; }
+            const allTransactions = getBankTransactions(selectedPiggyBankId);
+
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <h2 class="text-xl font-bold text-gray-700 mb-4 pt-2">Alle Bewegungen für ${bank.name}</h2>
+                
+                <div class="bg-card-light rounded-xl shadow-lg overflow-hidden custom-scrollbar max-h-[80vh]">
+                    <div class="sticky top-0 bg-gray-100 flex justify-between p-3 font-semibold text-gray-600 text-sm border-b">
+                        <span class="w-1/4">Datum</span>
+                        <span class="w-2/4">Beschreibung</span>
+                        <span class="w-1/4 text-right">Betrag</span>
+                    </div>
+                    <div class="divide-y divide-gray-100">
+                        ${allTransactions.map(t => `
+                            <div class="flex justify-between items-center p-3 hover:bg-gray-50 transition">
+                                <span class="w-1/4 text-xs text-gray-500">${new Date(t.date).toLocaleDateString('de-DE')}</span>
+                                <div class="w-2/4">
+                                    <p class="font-medium text-gray-800 text-sm">${t.description}</p>
+                                    <p class="text-xs ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">${t.type === 'deposit' ? 'Einzahlung (Automatisch)' : 'Auszahlung (Manuell)'}</p>
+                                </div>
+                                <span class="w-1/4 text-right font-bold text-sm ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">
+                                    ${t.type === 'deposit' ? '+' : '-'} ${formatCurrency(t.amount)}
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ${allTransactions.length === 0 ? '<p class="text-center p-8 text-gray-500 italic">Noch keine Transaktionen vorhanden.</p>' : ''}
+            `;
+        };
+
+        // --- Modal Logik (Manuelle Auszahlung, Ziel/Budget hinzufügen) ---
+
+        const openModal = (type) => {
+            const container = document.getElementById('modal-container');
+            let modalContent = '';
+            let title = '';
+            let actionColor = 'bg-primary-blue';
+
+            switch (type) {
+                case 'withdrawal':
+                    title = 'Manuelle Auszahlung protokollieren';
+                    actionColor = 'bg-accent-pink';
+                    modalContent = `
+                        <form id="withdrawal-form" class="space-y-4">
+                            <p class="text-gray-600 text-sm">Du nimmst Geld aus dem physischen Sparschwein. Gib Betrag und Grund ein.</p>
+                            <div>
+                                <label for="withdrawal-amount" class="block text-sm font-medium text-gray-700">Betrag</label>
+                                <input type="number" step="0.01" id="withdrawal-amount" name="withdrawal-amount" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-accent-pink focus:border-accent-pink" placeholder="z.B. 2.50">
+                            </div>
+                            <div>
+                                <label for="withdrawal-reason" class="block text-sm font-medium text-gray-700">Grund der Auszahlung (Für welche Kategorie?)</label>
+                                <input type="text" id="withdrawal-reason" name="withdrawal-reason" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="z.B. Eis gekauft / Spielzeug">
+                            </div>
+                            <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Auszahlen bestätigen</button>
+                        </form>
+                    `;
+                    break;
+                case 'addGoal':
+                    title = 'Neues Sparziel erstellen';
+                    actionColor = 'bg-red-500';
+                    modalContent = `
+                        <form id="goal-form" class="space-y-4">
+                            <div>
+                                <label for="goal-name" class="block text-sm font-medium text-gray-700">Name des Ziels</label>
+                                <input type="text" id="goal-name" name="goal-name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-red-500 focus:border-red-500">
+                            </div>
+                            <div>
+                                <label for="goal-target" class="block text-sm font-medium text-gray-700">Zielbetrag in EUR</label>
+                                <input type="number" step="0.01" id="goal-target" name="goal-target" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-red-500 focus:border-red-500" placeholder="z.B. 400.00">
+                            </div>
+                            <div>
+                                <label for="goal-rate" class="block text-sm font-medium text-gray-700">Sparrate in % (von jeder **automatischen** Einzahlung)</label>
+                                <input type="number" id="goal-rate" name="goal-rate" min="1" max="100" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-red-500 focus:border-red-500" placeholder="z.B. 30">
+                                <p class="text-xs text-gray-500 mt-1">Die Gesamtsparrate für alle Ziele darf 100% nicht überschreiten.</p>
+                            </div>
+                            <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Ziel speichern</button>
+                        </form>
+                    `;
+                    break;
+
+                case 'addBudget':
+                    title = 'Neues Budget erstellen';
+                    actionColor = 'bg-purple-500';
+                    modalContent = `
+                        <form id="budget-form" class="space-y-4">
+                            <div>
+                                <label for="budget-name" class="block text-sm font-medium text-gray-700">Kategorie (z.B. Süßigkeiten)</label>
+                                <input type="text" id="budget-name" name="budget-name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-purple-500 focus:border-purple-500">
+                            </div>
+                            <div>
+                                <label for="budget-limit" class="block text-sm font-medium text-gray-700">Ausgabelimit in EUR</label>
+                                <input type="number" step="0.01" id="budget-limit" name="budget-limit" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-purple-500 focus:border-purple-500" placeholder="z.B. 50.00">
+                            </div>
+                            <div>
+                                <label for="budget-period" class="block text-sm font-medium text-gray-700">Zeitraum</label>
+                                <select id="budget-period" name="budget-period" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-purple-500 focus:border-purple-500">
+                                    <option>Woche</option>
+                                    <option>Monat</option>
+                                    <option>Jahr</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Budget speichern</button>
+                        </form>
+                    `;
+                    break;
+                default:
+                    return; // Nur erlaubte Modaltypen öffnen
+            }
+
+            // Modal HTML Struktur
+            container.innerHTML = `
+                <div id="modal-backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity z-40" onclick="closeModal()"></div>
+                <div id="modal" class="fixed inset-0 z-50 overflow-y-auto">
+                    <div class="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
+                        <div class="relative bg-card-light rounded-xl shadow-2xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full p-6 w-full">
+                            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                                <h3 class="text-2xl font-extrabold text-gray-800">${title}</h3>
+                                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                            ${modalContent}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Event Listener für Formulare hinzufügen
+            document.getElementById('modal-container').querySelector('form')?.addEventListener('submit', (e) => {
+                e.preventDefault();
+                handleFormSubmit(type, e.target);
+            });
+        };
+
+        const closeModal = () => {
+            document.getElementById('modal-container').innerHTML = '';
+        };
+
+        // --- Formularverarbeitung (Dummy) ---
+        const handleFormSubmit = (type, form) => {
+            const bank = getPiggyBank(selectedPiggyBankId);
+            if (!bank) return;
+
+            let successMessage = 'Vorgang erfolgreich!';
+            
+            try {
+                switch (type) {
+                    case 'withdrawal':
+                        const withdrawalAmount = parseFloat(form['withdrawal-amount'].value);
+                        const withdrawalReason = form['withdrawal-reason'].value;
+                        if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) throw new Error('Ungültiger Betrag.');
+                        if (bank.balance < withdrawalAmount) throw new Error('Nicht genügend Guthaben.');
+
+                        // 1. Update bank balance
+                        bank.balance -= withdrawalAmount;
+
+                        // 2. Add transaction
+                        transactions.push({
+                            id: Date.now(),
+                            bankId: bank.id,
+                            type: 'withdrawal',
+                            amount: withdrawalAmount,
+                            date: new Date().toISOString().slice(0, 10),
+                            description: withdrawalReason,
+                        });
+                        
+                        // 3. Simple logic to check budget (not fully implemented tracking)
+                        const bankBudgets = getBankBudgets(bank.id);
+                        const spentBudget = bankBudgets.find(b => withdrawalReason.toLowerCase().includes(b.name.toLowerCase()));
+                        if (spentBudget) {
+                            spentBudget.spent += withdrawalAmount;
+                        }
+                        
+                        successMessage = `- ${formatCurrency(withdrawalAmount)} wurde für "${withdrawalReason}" entnommen (manuelle Protokollierung).`;
+                        break;
+                        
+                    case 'addGoal':
+                        const goalName = form['goal-name'].value;
+                        const goalTarget = parseFloat(form['goal-target'].value);
+                        const goalRate = parseInt(form['goal-rate'].value);
+                        
+                        if (isNaN(goalTarget) || goalTarget <= 0 || isNaN(goalRate) || goalRate <= 0) throw new Error('Ungültige Werte.');
+
+                        const currentTotalRate = getBankGoals(bank.id).reduce((sum, g) => sum + g.contributionRate, 0);
+                        if (currentTotalRate + goalRate > 100) throw new Error(`Gesamtsparrate darf 100% nicht überschreiten. Aktuell: ${currentTotalRate}%`);
+
+                        goals.push({
+                            id: Date.now(),
+                            bankId: bank.id,
+                            name: goalName,
+                            targetAmount: goalTarget,
+                            savedAmount: 0.00,
+                            contributionRate: goalRate,
+                            color: 'bg-' + ['blue', 'green', 'yellow', 'red', 'indigo'][Math.floor(Math.random() * 5)] + '-500', // Zufällige Farbe
+                        });
+                        successMessage = `Sparziel "${goalName}" wurde erstellt.`;
+                        break;
+
+                    case 'addBudget':
+                        const budgetName = form['budget-name'].value;
+                        const budgetLimit = parseFloat(form['budget-limit'].value);
+                        const budgetPeriod = form['budget-period'].value;
+
+                        if (isNaN(budgetLimit) || budgetLimit <= 0) throw new Error('Ungültiges Limit.');
+
+                        budgets.push({
+                            id: Date.now(),
+                            bankId: bank.id,
+                            name: budgetName,
+                            limit: budgetLimit,
+                            spent: 0.00,
+                            period: budgetPeriod,
+                            color: 'bg-' + ['purple', 'orange', 'teal', 'pink'][Math.floor(Math.random() * 4)] + '-500', // Zufällige Farbe
+                        });
+                        successMessage = `Budget für "${budgetName}" wurde erstellt.`;
+                        break;
+                    default:
+                        throw new Error('Unbekannter Formulartyp.');
+                }
+                
+                // Erfolgsmeldung anzeigen (statt Alert)
+                showNotification(successMessage, 'success');
+
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+
+            closeModal();
+            updateUI(); // UI neu rendern, um die Änderungen anzuzeigen
+        };
+
+        // --- Benachrichtigungsfunktion (Statt alert) ---
+        const showNotification = (message, type = 'info') => {
+            const container = document.getElementById('modal-container');
+            const color = type === 'success' ? 'bg-secondary-green' : type === 'error' ? 'bg-red-500' : 'bg-primary-blue';
+            
+            const notification = document.createElement('div');
+            notification.className = `${color} text-white p-4 rounded-xl shadow-xl fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform scale-0 opacity-0 text-sm font-medium`;
+            notification.textContent = message;
+
+            container.appendChild(notification);
+            
+            // Zeige die Benachrichtigung an
+            setTimeout(() => {
+                notification.classList.remove('scale-0', 'opacity-0');
+                notification.classList.add('scale-100', 'opacity-100');
+            }, 50);
+
+            // Verstecke die Benachrichtigung nach 3 Sekunden
+            setTimeout(() => {
+                notification.classList.remove('scale-100', 'opacity-100');
+                notification.classList.add('scale-0', 'opacity-0');
+                setTimeout(() => notification.remove(), 300); // Entferne das Element nach der Transition
+            }, 3000);
+        };
+
+
+        // --- Initialisierung ---
+        document.addEventListener('DOMContentLoaded', () => {
+            currentView = 'dashboard';
+            selectedPiggyBankId = null; 
+            updateUI();
+        });
+
+    </script>
+</body>
+</html>
