@@ -1,45 +1,31 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Meine Sparwelt - Login & App</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Supabase Client -->
     <script type="module">
-        // Laden der Firebase Module
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getAuth, 
-            signInAnonymously, 
-            signInWithCustomToken, 
-            onAuthStateChanged,
-            createUserWithEmailAndPassword,
-            signInWithEmailAndPassword,
-            signOut 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            doc, 
-            addDoc, 
-            setDoc, 
-            updateDoc, 
-            deleteDoc, 
-            onSnapshot, 
-            collection, 
-            query, 
-            where, 
-            getDocs,
-            serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        // Exponiere die Imports und die initialisierten Variablen global für die Nutzung im Skript-Block
-        window.firebase = {
-            initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged,
-            createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-            getFirestore, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, serverTimestamp
-        };
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        // Exponiere Supabase Client global
+        const SUPABASE_URL = 'https://kfonoowhnbvliggpwzxc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmb25vb3dobmJ2bGlnZ3B3enhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MzQ1MDksImV4cCI6MjA3OTUxMDUwOX0.-To4sVg7o5Uxx3jNpAcWmurC2lGPVPmj-Em1wW_eNyk';
+
+        window.supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: true,
+                detectSessionInUrl: true,
+            }
+        });
+
+        // Expose for non-module inline scripts
+        window.SUPABASE_URL = SUPABASE_URL;
+        window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
     </script>
-    
+
     <script>
         // Setzt die Tailwind-Konfiguration
         tailwind.config = {
@@ -49,7 +35,7 @@
                         'primary-blue': '#4F46E5', // Hauptfarbe: Indigo
                         'secondary-green': '#10B981', // Akzentfarbe: Emerald
                         'accent-pink': '#EC4899', // Warnfarbe: Pink
-                        'bg-light': '#F3F4F6', 
+                        'bg-light': '#F3F4F6',
                         'card-light': '#FFFFFF',
                     },
                     fontFamily: {
@@ -59,37 +45,38 @@
             }
         };
     </script>
+
     <style>
         /* Grundlegendes Styling für das Handyformat */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #F3F4F6;
             display: flex;
-            justify-content: center; 
+            justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            padding-bottom: 80px; 
+            padding-bottom: 80px;
         }
         #app-container {
             width: 100%;
-            max-width: 500px; 
+            max-width: 500px;
             min-height: 100vh;
             background-color: white;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.2); 
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
             position: relative;
         }
 
         /* Responsive Anpassung für Mobile */
         @media (max-width: 500px) {
             #app-container {
-                max-width: 100%; 
-                box-shadow: none; 
+                max-width: 100%;
+                box-shadow: none;
             }
             body {
-                padding: 0; 
+                padding: 0;
             }
         }
-        
+
         /* Modals & Loader */
         .loader {
             border: 4px solid rgba(255, 255, 255, 0.3);
@@ -137,7 +124,7 @@
 <body>
 
     <div id="app-container">
-        
+
         <div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-50 transition-opacity duration-300 hidden">
             <div class="loader active border-primary-blue border-t-white border-2 w-10 h-10"></div>
             <p class="mt-4 text-white text-lg">Lade App...</p>
@@ -151,12 +138,12 @@
                 <form id="auth-form" class="space-y-4">
                     <input type="email" id="auth-email" placeholder="E-Mail" required class="w-full p-3 rounded-lg border border-gray-300 focus:ring-primary-blue focus:border-primary-blue">
                     <input type="password" id="auth-password" placeholder="Passwort" required class="w-full p-3 rounded-lg border border-gray-300 focus:ring-primary-blue focus:border-primary-blue">
-                    
+
                     <button type="submit" id="auth-submit-btn" class="w-full bg-primary-blue text-white py-3 rounded-xl font-bold hover:bg-indigo-600 transition flex items-center justify-center">
                         <span id="auth-btn-text">Anmelden</span>
                         <div class="loader ml-2" id="auth-loader"></div>
                     </button>
-                    
+
                     <p id="auth-message" class="text-sm text-red-500 text-center"></p>
                 </form>
                 <div class="mt-4 text-center">
@@ -189,171 +176,188 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3 .895-3 2 1.343 2 3 2m0-8V4m0 12v4m-6-2h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     <span class="text-xs mt-1">Sparschweine</span>
                 </div>
-                </nav>
+            </nav>
 
             <div id="modal-container"></div>
         </div>
     </div>
 
-    <script>
-        // **********************************************
-        // ** KORRIGIERTER BLOCK FÜR FIREBASE-KONFIGURATION **
-        // **********************************************
-        
-        // IHRE FIREBASE-KONFIGURATION (Hart codiert als Fallback für lokale Tests):
-        // WICHTIG: Diese JSON-Zeichenkette wird verwendet, wenn die App nicht in der 
-        // Canvas-Umgebung ausgeführt wird.
-        const USER_FIREBASE_CONFIG_STRING = '{"apiKey":"AIzaSyCIFRKqBrugb_oHUWfxUnJa6UtgfZ2Aq3s","authDomain":"sparify-bd79e.firebaseapp.com","projectId":"sparify-bd79e","storageBucket":"sparify-bd79e.firebasestorage.app","messagingSenderId":"958598659366","appId":"1:958598659366:web:d53152dd669216415d15e7","measurementId":"G-XHH44C9LER"}';
-        
-        // ** GLOBALE VARIABLEN (Von der Canvas-Umgebung bereitgestellt) **
-        // Stellt sicher, dass die Firebase-Konfiguration geladen wird:
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sparify-bd79e'; // Nutzt "projectId" als Fallback
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : USER_FIREBASE_CONFIG_STRING);
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        // **********************************************
-        
-        // ** FIREBASE INITIALISIERUNG **
-        let app, auth, db;
-        let unsubscribeListeners = []; // Speichert alle onSnapshot Abonnements
+    <!-- Supabase-powered application logic (ersetzt Firebase) -->
+    <script type="module">
+        // Zugriff auf den globalen Supabase-Client
+        const supabase = window.supabaseClient;
 
-        // ** ZUSTANDSVERWALTUNG **
-        let userId = null;
+        // ------------------------------------------------
+        // STATE
+        // ------------------------------------------------
+        let userId = null; // Wird auf die auth.user.id gesetzt
         let isAuthReady = false;
         let currentView = 'dashboard';
-        let selectedPiggyBankId = null; 
+        let selectedPiggyBankId = null;
 
-        // Echtzeit-Daten (entsprechen der Datenbankstruktur)
-        let piggyBanks = []; // PhysicalPiggyBank
-        let savingGoals = []; // SavingGoal
-        let goalAllocations = []; // PiggyBankSavingGoal
-        let transactions = []; // Transaction
-        // NEU: Budget-Daten
-        let budgetCategories = []; // BudgetCategory
-        let budgetAllocations = []; // PiggyBankBudgetAllocation
-        
-        // Konstanten für Firebase Collection Namen
+        let piggyBanks = [];
+        let savingGoals = [];
+        let goalAllocations = [];
+        let transactions = [];
+        let budgetCategories = [];
+        let budgetAllocations = [];
+
+        // Subscriptions (Supabase channel objects / subscriptions)
+        let subscriptions = [];
+
         const COLLECTIONS = {
-            BANKS: 'piggyBanks',
-            GOALS: 'savingGoals',
-            ALLOCATIONS: 'piggyBankGoalAllocations',
+            BANKS: 'physical_piggybanks',
+            GOALS: 'saving_goals',
+            ALLOCATIONS: 'piggybank_saving_goals',
             TRANSACTIONS: 'transactions',
-            // NEU: Budget-Collections
-            CATEGORIES: 'budgetCategories',
-            BUDGETS: 'piggyBankBudgetAllocations'
+            CATEGORIES: 'budget_categories',
+            BUDGETS: 'piggybank_budget_allocations',
+            USERS: 'users'
         };
 
-        // --- HILFSFUNKTIONEN FÜR DATENBANKPFADE ---
-        /** Baut den Firestore Pfad für die PRIVATE Daten eines angemeldeten Benutzers. */
-        const getCollectionPath = (collectionName) => {
-            if (!userId) {
-                console.error("User ID ist nicht verfügbar. Kann keinen Pfad erstellen.");
-                // Nutzt einen zufälligen ID für anonyme oder nicht authentifizierte Zugriffe (wird im Auth-Teil behandelt)
-                return `artifacts/${appId}/users/anonymous-temp/${collectionName}`; 
-            }
-            // Pfad: /artifacts/{appId}/users/{userId}/{collectionName}
-            return `artifacts/${appId}/users/${userId}/${collectionName}`;
+        // ------------------------------------------------
+        // HELPERS
+        // ------------------------------------------------
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount || 0);
         };
 
-        // --- AUTHENTIFIZIERUNG UND INITIALISIERUNG ---
-        const setupFirebase = () => {
-            if (!window.firebase) {
-                console.error("Firebase Module nicht geladen.");
-                showNotification("Firebase Module konnten nicht geladen werden.", 'error');
-                return;
-            }
-
+        const formatTimestamp = (timestamp) => {
+            if (!timestamp) return 'Unbekanntes Datum';
+            // Supabase liefert ISO-Strings; Date konvertieren
             try {
-                // App und Dienste initialisieren
-                app = firebase.initializeApp(firebaseConfig);
-                auth = firebase.getAuth(app);
-                db = firebase.getFirestore(app);
-            } catch (error) {
-                console.error("Firebase Initialisierung fehlgeschlagen:", error);
-                showNotification("Fehler bei der Initialisierung. Prüfen Sie die Konfiguration.", 'error');
-                return;
+                const d = new Date(timestamp);
+                if (isNaN(d)) return 'Unbekanntes Datum';
+                return d.toLocaleDateString('de-DE');
+            } catch {
+                return 'Unbekanntes Datum';
             }
+        };
 
-            // NEUER FALLBACK-TIMEOUT: Stoppt das Lade-Overlay, falls Auth länger als 5s hängt
-            const fallbackTimeout = setTimeout(() => {
-                if (!isAuthReady) {
-                    console.warn("Firebase-Verbindung Timeout. Zeige Login-Ansicht an.");
-                    document.getElementById('loading-overlay').classList.add('hidden');
-                    document.getElementById('auth-message').textContent = "Achtung: Die Anmeldung hat lange gedauert. Bitte versuchen Sie es manuell.";
-                    document.getElementById('auth-view').classList.remove('hidden');
+        const getPiggyBank = (id) => piggyBanks.find(b => b.id === id);
+        const getBankTransactions = (id) => transactions.filter(t => t.piggybank_id === id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+        const getBankGoals = (id) => {
+            const bankAllocation = goalAllocations.filter(a => a.piggybank_id === id);
+            return bankAllocation.map(allocation => {
+                const goal = savingGoals.find(g => g.id === allocation.savinggoal_id);
+                if (goal) {
+                    return {
+                        ...goal,
+                        allocation_percent: allocation.allocation_percent,
+                    };
                 }
-            }, 5000); // 5 Sekunden Timeout
+                return null;
+            }).filter(g => g !== null);
+        };
+        const getBankBudgets = (id) => {
+            const bankAlloc = budgetAllocations.filter(a => a.piggybank_id === id);
+            return bankAlloc.map(allocation => {
+                const category = budgetCategories.find(c => c.id === allocation.category_id);
+                if (category) {
+                    // Simuliere usage wie zuvor (Demo)
+                    const currentUsage = (category.monthly_limit || 0) * (Math.random() * 0.8 + 0.1);
+                    const remaining = (category.monthly_limit || 0) - currentUsage;
+                    return {
+                        ...category,
+                        ...allocation,
+                        current_usage: parseFloat(currentUsage.toFixed(2)),
+                        remaining_budget: parseFloat(remaining.toFixed(2)),
+                    };
+                }
+                return null;
+            }).filter(c => c !== null);
+        };
 
-            // Auth State Listener
-            firebase.onAuthStateChanged(auth, async (user) => {
-                clearTimeout(fallbackTimeout); // Timer stoppen, wenn Auth Status empfangen wurde
+        // ------------------------------------------------
+        // AUTH & INITIALIZATION
+        // ------------------------------------------------
+        const setupSupabaseAuth = () => {
+            // Auth state listener
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                console.log('Auth event', event);
                 const loadingOverlay = document.getElementById('loading-overlay');
-                loadingOverlay.classList.add('hidden'); // Blende das Laden-Overlay aus, sobald die Auth-Prüfung beendet ist
+                loadingOverlay.classList.add('hidden');
 
-                if (user) {
-                    userId = user.uid;
+                if (session && session.user) {
+                    userId = session.user.id; // UUID from supabase auth
                     isAuthReady = true;
-                    console.log("Benutzer angemeldet:", userId);
                     document.getElementById('display-user-id').textContent = userId;
                     document.getElementById('auth-view').classList.add('hidden');
                     document.getElementById('main-app-view').classList.remove('hidden');
-                    
-                    // Starte die Echtzeit-Daten-Listener
-                    startFirestoreListeners();
+
+                    // Ensure there is a profile row in public.users with id = auth.user.id
+                    await ensureProfileRow(session.user);
+
+                    // Start realtime listeners / initial fetch
+                    startSupabaseListeners();
+
                 } else {
                     userId = null;
                     isAuthReady = true;
-                    console.log("Kein Benutzer angemeldet. Zeige Login.");
                     document.getElementById('display-user-id').textContent = 'ANONYM/NICHT EINGELOGGT';
                     document.getElementById('auth-view').classList.remove('hidden');
                     document.getElementById('main-app-view').classList.add('hidden');
-                    
-                    // Stoppe alle Listener, um Speicherlecks zu vermeiden
-                    stopFirestoreListeners();
+
+                    stopSupabaseListeners();
                 }
             });
-            
-            // Initialen Token-Login versuchen (Canvas-spezifisch)
-            if (initialAuthToken) {
-                document.getElementById('loading-overlay').classList.remove('hidden');
-                firebase.signInWithCustomToken(auth, initialAuthToken).catch(async (error) => {
-                    console.warn("Custom Token Login fehlgeschlagen, versuche anonyme Anmeldung:", error.message);
-                    // Fallback zur anonymen Anmeldung, falls der Token fehlschlägt
-                    await firebase.signInAnonymously(auth).catch((anonError) => {
-                         console.error("Anonyme Anmeldung fehlgeschlagen:", anonError.message);
-                         showNotification("Fehler bei der Anmeldung. Bitte versuchen Sie es später erneut.", 'error');
-                    });
-                });
-            } else {
-                 // Fallback zur anonymen Anmeldung, wenn kein Token verfügbar ist
-                 firebase.signInAnonymously(auth).catch((anonError) => {
-                     console.error("Anonyme Anmeldung fehlgeschlagen:", anonError.message);
-                     showNotification("Fehler bei der Anmeldung. Bitte versuchen Sie es später erneut.", 'error');
-                 });
-            }
 
-            // Füge Event Listener für das Auth Formular hinzu
-            document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
-            document.getElementById('toggle-auth-mode').addEventListener('click', toggleAuthMode);
+            // Try to restore session automatically (supabase client does this by default on init)
+            // Show login view if not authenticated after a short timeout
+            setTimeout(() => {
+                if (!isAuthReady) {
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                    document.getElementById('auth-view').classList.remove('hidden');
+                }
+            }, 3000); // 3s fallback
+        };
+
+        // Ensure profile row exists in public.users with id = auth.user.id
+        // Note: Your public.users table requires a 'password' NOT NULL column.
+        // We'll insert a placeholder empty string for password so the row can be created.
+        const ensureProfileRow = async (authUser) => {
+            try {
+                const { data: existing, error: selError } = await supabase
+                    .from(COLLECTIONS.USERS)
+                    .select('id,email')
+                    .eq('id', authUser.id)
+                    .limit(1);
+
+                if (selError) throw selError;
+
+                if (!existing || existing.length === 0) {
+                    const profile = {
+                        id: authUser.id,
+                        email: authUser.email || '',
+                        password: '', // placeholder because table requires NOT NULL
+                    };
+                    const { error: insertError } = await supabase
+                        .from(COLLECTIONS.USERS)
+                        .insert(profile);
+                    if (insertError) console.warn('Could not create profile row:', insertError.message);
+                }
+            } catch (err) {
+                console.error('ensureProfileRow error:', err);
+            }
         };
 
         const handleLogout = async () => {
             try {
-                await firebase.signOut(auth);
-                // onAuthStateChanged wird den UI-Wechsel automatisch übernehmen
-                showNotification("Erfolgreich abgemeldet.", 'success');
+                await supabase.auth.signOut();
+                showNotification('Erfolgreich abgemeldet.', 'success');
             } catch (error) {
-                console.error("Logout Fehler:", error);
-                showNotification("Fehler beim Abmelden.", 'error');
+                console.error('Logout error:', error);
+                showNotification('Fehler beim Abmelden.', 'error');
             }
         };
 
+        // Toggle between login/register
         let isRegisterMode = false;
         const toggleAuthMode = () => {
             isRegisterMode = !isRegisterMode;
             const submitBtnText = document.getElementById('auth-btn-text');
             const toggleBtn = document.getElementById('toggle-auth-mode');
-            
+
             if (isRegisterMode) {
                 submitBtnText.textContent = 'Registrieren';
                 toggleBtn.textContent = 'Bereits ein Konto? Hier anmelden.';
@@ -378,21 +382,23 @@
 
             try {
                 if (isRegisterMode) {
-                    await firebase.createUserWithEmailAndPassword(auth, email, password);
-                    showNotification("Registrierung erfolgreich! Automatisch angemeldet.", 'success');
+                    // Sign up via Supabase Auth
+                    const { data, error } = await supabase.auth.signUp({ email, password });
+                    if (error) throw error;
+
+                    // If immediate session exists, ensure profile row will be created by auth listener.
+                    showNotification('Registrierung abgeschlossen. Bitte überprüfe ggf. dein Postfach.', 'success');
                 } else {
-                    await firebase.signInWithEmailAndPassword(auth, email, password);
-                    showNotification("Anmeldung erfolgreich!", 'success');
+                    // Sign in
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    showNotification('Anmeldung erfolgreich!', 'success');
                 }
-                // onAuthStateChanged übernimmt den Rest
             } catch (error) {
-                console.error("Auth Error:", error.code, error.message);
-                let msg = "Ein unbekannter Fehler ist aufgetreten.";
-                if (error.code === 'auth/email-already-in-use') msg = "Diese E-Mail ist bereits registriert.";
-                else if (error.code === 'auth/invalid-email') msg = "Ungültiges E-Mail-Format.";
-                else if (error.code === 'auth/weak-password') msg = "Passwort muss mindestens 6 Zeichen lang sein.";
-                else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') msg = "E-Mail oder Passwort ist falsch.";
-                
+                console.error('Auth Error:', error);
+                let msg = 'Ein unbekannter Fehler ist aufgetreten.';
+                if (error.message?.toLowerCase().includes('invalid')) msg = 'Ungültige Anmeldedaten.';
+                if (error.message?.toLowerCase().includes('user')) msg = 'E-Mail oder Passwort ist falsch.';
                 messageEl.textContent = msg;
             } finally {
                 loader.classList.remove('active');
@@ -400,230 +406,326 @@
             }
         };
 
+        // ------------------------------------------------
+        // Realtime & DATA FETCH
+        // ------------------------------------------------
+        const stopSupabaseListeners = () => {
+            // remove all subscriptions
+            try {
+                subscriptions.forEach(sub => {
+                    if (sub && typeof supabase.removeChannel === 'function') {
+                        supabase.removeChannel(sub);
+                    } else if (sub && typeof sub.unsubscribe === 'function') {
+                        sub.unsubscribe();
+                    }
+                });
+            } catch (e) {
+                console.warn('Error unsubscribing:', e);
+            }
+            subscriptions = [];
 
-        // --- FIRESTORE DATENBANK LOGIK (Realtime & CRUD) ---
-        
-        // Stoppt alle onSnapshot Listener
-        const stopFirestoreListeners = () => {
-            unsubscribeListeners.forEach(unsubscribe => unsubscribe());
-            unsubscribeListeners = [];
             piggyBanks = [];
             savingGoals = [];
             goalAllocations = [];
             transactions = [];
-            budgetCategories = []; // NEU
-            budgetAllocations = []; // NEU
+            budgetCategories = [];
+            budgetAllocations = [];
         };
 
-        // Startet alle onSnapshot Listener
-        const startFirestoreListeners = () => {
-            if (!db || !userId) {
-                console.error("Firestore oder User nicht bereit.");
+        const startSupabaseListeners = async () => {
+            if (!userId) {
+                console.error('Supabase / User not ready');
                 return;
             }
-            
-            // 1. Sparschweine (PhysicalPiggyBank)
-            const banksQuery = firebase.query(firebase.collection(db, getCollectionPath(COLLECTIONS.BANKS)));
-            const unsubBanks = firebase.onSnapshot(banksQuery, (snapshot) => {
-                piggyBanks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log("Sparschweine aktualisiert:", piggyBanks.length);
-                updateUI(); // UI neu rendern bei Datenänderung
-            }, (error) => console.error("Error fetching piggyBanks:", error));
-            unsubscribeListeners.push(unsubBanks);
 
-            // 2. Sparziele (SavingGoal)
-            const goalsQuery = firebase.query(firebase.collection(db, getCollectionPath(COLLECTIONS.GOALS)));
-            const unsubGoals = firebase.onSnapshot(goalsQuery, (snapshot) => {
-                savingGoals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log("Sparziele aktualisiert:", savingGoals.length);
-                updateUI();
-            }, (error) => console.error("Error fetching savingGoals:", error));
-            unsubscribeListeners.push(unsubGoals);
-            
-            // 3. Zuordnungen (PiggyBankSavingGoal)
-            const allocationsQuery = firebase.query(firebase.collection(db, getCollectionPath(COLLECTIONS.ALLOCATIONS)));
-            const unsubAllocations = firebase.onSnapshot(allocationsQuery, (snapshot) => {
-                goalAllocations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log("Zuordnungen aktualisiert:", goalAllocations.length);
-                updateUI();
-            }, (error) => console.error("Error fetching goalAllocations:", error));
-            unsubscribeListeners.push(unsubAllocations);
+            // Initial fetch for each table
+            await fetchAllData();
 
-            // 4. Transaktionen (WICHTIG: Korrektur der Struktur, um das 'note' Feld aufzunehmen)
-            const transactionsQuery = firebase.query(firebase.collection(db, getCollectionPath(COLLECTIONS.TRANSACTIONS)));
-            const unsubTransactions = firebase.onSnapshot(transactionsQuery, (snapshot) => {
-                transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Sortiere Transaktionen absteigend nach created_at 
-                transactions.sort((a, b) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0));
-                console.log("Transaktionen aktualisiert:", transactions.length);
-                updateUI();
-            }, (error) => console.error("Error fetching transactions:", error));
-            unsubscribeListeners.push(unsubTransactions);
+            // Subscribe to realtime changes for each table filtered by user_id where appropriate
+            // physical_piggybanks
+            const banksSub = supabase.channel(`public:physical_piggybanks:user_id=eq.${userId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.BANKS, filter: `user_id=eq.${userId}` }, payload => {
+                    handleRealtimePayload(payload, COLLECTIONS.BANKS);
+                }).subscribe();
+            subscriptions.push(banksSub);
 
-            // NEU: 5. Budget-Kategorien (BudgetCategory)
-            const categoriesQuery = firebase.query(firebase.collection(db, getCollectionPath(COLLECTIONS.CATEGORIES)));
-            const unsubCategories = firebase.onSnapshot(categoriesQuery, (snapshot) => {
-                budgetCategories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log("Budget-Kategorien aktualisiert:", budgetCategories.length);
-                updateUI();
-            }, (error) => console.error("Error fetching budgetCategories:", error));
-            unsubscribeListeners.push(unsubCategories);
+            // saving_goals (user-owned)
+            const goalsSub = supabase.channel(`public:saving_goals:user_id=eq.${userId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.GOALS, filter: `user_id=eq.${userId}` }, payload => {
+                    handleRealtimePayload(payload, COLLECTIONS.GOALS);
+                }).subscribe();
+            subscriptions.push(goalsSub);
 
-            // NEU: 6. Budget-Zuordnungen (PiggyBankBudgetAllocation)
-            const budgetsQuery = firebase.query(firebase.collection(db, getCollectionPath(COLLECTIONS.BUDGETS)));
-            const unsubBudgets = firebase.onSnapshot(budgetsQuery, (snapshot) => {
-                budgetAllocations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log("Budget-Zuordnungen aktualisiert:", budgetAllocations.length);
+            // piggybank_saving_goals (allocations)
+            const allocSub = supabase.channel(`public:piggybank_saving_goals:piggybank_id=eq.*`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.ALLOCATIONS }, payload => {
+                    // allocations don't always include user_id; filter client-side for piggybank belonging to user
+                    handleRealtimePayload(payload, COLLECTIONS.ALLOCATIONS);
+                }).subscribe();
+            subscriptions.push(allocSub);
+
+            // transactions (user-owned)
+            const transSub = supabase.channel(`public:transactions:user_id=eq.${userId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.TRANSACTIONS, filter: `user_id=eq.${userId}` }, payload => {
+                    handleRealtimePayload(payload, COLLECTIONS.TRANSACTIONS);
+                }).subscribe();
+            subscriptions.push(transSub);
+
+            // budget_categories (user-owned)
+            const catSub = supabase.channel(`public:budget_categories:user_id=eq.${userId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.CATEGORIES, filter: `user_id=eq.${userId}` }, payload => {
+                    handleRealtimePayload(payload, COLLECTIONS.CATEGORIES);
+                }).subscribe();
+            subscriptions.push(catSub);
+
+            // piggybank_budget_allocations
+            const budgetsSub = supabase.channel(`public:piggybank_budget_allocations:*`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.BUDGETS }, payload => {
+                    handleRealtimePayload(payload, COLLECTIONS.BUDGETS);
+                }).subscribe();
+            subscriptions.push(budgetsSub);
+        };
+
+        // Fetch all data once (initial)
+        const fetchAllData = async () => {
+            try {
+                // piggyBanks
+                let { data: banks, error: banksErr } = await supabase
+                    .from(COLLECTIONS.BANKS)
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                if (banksErr) throw banksErr;
+                piggyBanks = banks || [];
+
+                // savingGoals
+                let { data: goals, error: goalsErr } = await supabase
+                    .from(COLLECTIONS.GOALS)
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                if (goalsErr) throw goalsErr;
+                savingGoals = goals || [];
+
+                // allocations (piggybank_saving_goals) - we need all where piggybank belongs to user
+                let { data: allocs, error: allocErr } = await supabase
+                    .from(COLLECTIONS.ALLOCATIONS)
+                    .select('*');
+                if (allocErr) throw allocErr;
+                // filter client-side by piggybank user_id
+                goalAllocations = (allocs || []).filter(a => {
+                    const pb = (piggyBanks || []).find(b => b.id === a.piggybank_id);
+                    return pb && pb.user_id === userId;
+                });
+
+                // transactions
+                let { data: trans, error: transErr } = await supabase
+                    .from(COLLECTIONS.TRANSACTIONS)
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                if (transErr) throw transErr;
+                transactions = trans || [];
+
+                // budget_categories
+                let { data: cats, error: catsErr } = await supabase
+                    .from(COLLECTIONS.CATEGORIES)
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+                if (catsErr) throw catsErr;
+                budgetCategories = cats || [];
+
+                // piggybank_budget_allocations
+                let { data: ballocs, error: ballocErr } = await supabase
+                    .from(COLLECTIONS.BUDGETS)
+                    .select('*');
+                if (ballocErr) throw ballocErr;
+                budgetAllocations = (ballocs || []).filter(a => {
+                    const pb = (piggyBanks || []).find(b => b.id === a.piggybank_id);
+                    return pb && pb.user_id === userId;
+                });
+
                 updateUI();
-            }, (error) => console.error("Error fetching budgetAllocations:", error));
-            unsubscribeListeners.push(unsubBudgets);
-            
-            // Initiales Rendern
+            } catch (error) {
+                console.error('Fetch data error:', error);
+            }
+        };
+
+        // Handle realtime payloads: insert/update/delete
+        const handleRealtimePayload = (payload, table) => {
+            const { eventType, new: newRow, old: oldRow } = payload;
+            // Standardize event type names
+            const event = payload.eventType || payload.event; // older/newer differences
+            // Update local arrays accordingly
+            switch (table) {
+                case COLLECTIONS.BANKS:
+                    if (event === 'INSERT') piggyBanks.unshift(newRow);
+                    else if (event === 'UPDATE') piggyBanks = piggyBanks.map(b => b.id === newRow.id ? newRow : b);
+                    else if (event === 'DELETE') piggyBanks = piggyBanks.filter(b => b.id !== oldRow.id);
+                    break;
+                case COLLECTIONS.GOALS:
+                    if (event === 'INSERT') savingGoals.unshift(newRow);
+                    else if (event === 'UPDATE') savingGoals = savingGoals.map(g => g.id === newRow.id ? newRow : g);
+                    else if (event === 'DELETE') savingGoals = savingGoals.filter(g => g.id !== oldRow.id);
+                    break;
+                case COLLECTIONS.ALLOCATIONS:
+                    if (event === 'INSERT') goalAllocations.unshift(newRow);
+                    else if (event === 'UPDATE') goalAllocations = goalAllocations.map(a => a.id === newRow.id ? newRow : a);
+                    else if (event === 'DELETE') goalAllocations = goalAllocations.filter(a => a.id !== oldRow.id);
+                    break;
+                case COLLECTIONS.TRANSACTIONS:
+                    if (event === 'INSERT') transactions.unshift(newRow);
+                    else if (event === 'UPDATE') transactions = transactions.map(t => t.id === newRow.id ? newRow : t);
+                    else if (event === 'DELETE') transactions = transactions.filter(t => t.id !== oldRow.id);
+                    // Keep transactions sorted
+                    transactions.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                    break;
+                case COLLECTIONS.CATEGORIES:
+                    if (event === 'INSERT') budgetCategories.unshift(newRow);
+                    else if (event === 'UPDATE') budgetCategories = budgetCategories.map(c => c.id === newRow.id ? newRow : c);
+                    else if (event === 'DELETE') budgetCategories = budgetCategories.filter(c => c.id !== oldRow.id);
+                    break;
+                case COLLECTIONS.BUDGETS:
+                    if (event === 'INSERT') budgetAllocations.unshift(newRow);
+                    else if (event === 'UPDATE') budgetAllocations = budgetAllocations.map(b => b.id === newRow.id ? newRow : b);
+                    else if (event === 'DELETE') budgetAllocations = budgetAllocations.filter(b => b.id !== oldRow.id);
+                    break;
+            }
             updateUI();
         };
 
-        // CRUD: Sparschwein hinzufügen
+        // ------------------------------------------------
+        // CRUD OPERATIONS
+        // ------------------------------------------------
         const addPiggyBank = async (name, deviceId = 'MANUAL') => {
             try {
-                const newBank = {
+                const payload = {
                     user_id: userId,
-                    name: name,
-                    current_amount: 0.00, // Initialwert
-                    device_id: deviceId, // Setze den Gerätetyp/ID
-                    created_at: firebase.serverTimestamp(),
+                    name,
+                    current_amount: 0.00,
+                    device_id: deviceId
                 };
-                await firebase.addDoc(firebase.collection(db, getCollectionPath(COLLECTIONS.BANKS)), newBank);
+                const { data, error } = await supabase.from(COLLECTIONS.BANKS).insert(payload).select().single();
+                if (error) throw error;
                 showNotification(`Sparschwein "${name}" erstellt.`, 'success');
             } catch (error) {
-                console.error("Fehler beim Hinzufügen des Sparschweins:", error);
-                showNotification("Fehler beim Erstellen des Sparschweins.", 'error');
+                console.error('addPiggyBank error:', error);
+                showNotification('Fehler beim Erstellen des Sparschweins.', 'error');
             }
         };
 
-        // CRUD: Transaktion hinzufügen (Mit Korrektur für 'note' und Fokus auf piggybank_id)
         const addTransaction = async (bankId, type, amount, note) => {
-             try {
-                // ** WICHTIG: Transaktionen sind jetzt nur noch für 'withdrawal' relevant,
-                // da 'deposit' als automatisch erfasst angenommen wird, aber die Funktion muss
-                // die DB-Logik beibehalten.
-                
-                const newTransaction = {
+            try {
+                const payload = {
                     user_id: userId,
-                    piggybank_id: bankId, // FK -> PhysicalPiggyBank.id
-                    amount: amount, // Betrag
-                    type: type, // 'deposit' oder 'withdrawal'
-                    note: note, // Optionaler Kommentar
-                    created_at: firebase.serverTimestamp(),
+                    piggybank_id: bankId,
+                    amount: amount,
+                    type: type,
+                    note: note || null
                 };
-                await firebase.addDoc(firebase.collection(db, getCollectionPath(COLLECTIONS.TRANSACTIONS)), newTransaction);
-                
-                // Aktualisiere den Kontostand des Sparschweins
-                const bankRef = firebase.doc(db, getCollectionPath(COLLECTIONS.BANKS), bankId);
+                const { data: transData, error: transErr } = await supabase.from(COLLECTIONS.TRANSACTIONS).insert(payload).select().single();
+                if (transErr) throw transErr;
+
+                // Update bank balance
+                const currentBank = getPiggyBank(bankId);
                 const delta = type === 'deposit' ? amount : -amount;
-                
-                // Holt den aktuellen Kontostand (sollte durch onSnapshot bereits aktuell sein)
-                const currentBank = piggyBanks.find(b => b.id === bankId);
-                if (currentBank) {
-                     await firebase.updateDoc(bankRef, {
-                        // Wichtig: toFixed(2) für saubere Gleitkomma-Berechnung
-                        current_amount: parseFloat((currentBank.current_amount + delta).toFixed(2))
-                    });
-                }
-                
-                // ** HINWEIS: Hier müsste später die Logik zur Aufteilung auf Sparziele/Budgets hin **
-                // if (type === 'deposit') { runAllocationLogic(bankId, amount); }
+                const newAmount = parseFloat(((parseFloat(currentBank?.current_amount || 0) || 0) + delta).toFixed(2));
+
+                const { data: updatedBank, error: updErr } = await supabase
+                    .from(COLLECTIONS.BANKS)
+                    .update({ current_amount: newAmount })
+                    .eq('id', bankId)
+                    .select()
+                    .single();
+                if (updErr) console.warn('Bank update warning:', updErr.message);
 
                 showNotification(`${type === 'deposit' ? '+' : '-'} ${formatCurrency(amount)} verbucht.`, 'success');
-
             } catch (error) {
-                console.error("Fehler beim Hinzufügen der Transaktion:", error);
-                showNotification("Fehler beim Verarbeiten der Transaktion.", 'error');
+                console.error('addTransaction error:', error);
+                showNotification('Fehler beim Verarbeiten der Transaktion.', 'error');
             }
         };
 
+        // addGoal: create saving_goals & piggybank_saving_goals
+        const addGoal = async (bankId, goalName, goalTarget, goalRate) => {
+            try {
+                const goalPayload = {
+                    user_id: userId,
+                    name: goalName,
+                    target_amount: goalTarget,
+                    current_amount: 0.00,
+                    color: null,
+                    icon: null
+                };
+                const { data: goalData, error: goalErr } = await supabase.from(COLLECTIONS.GOALS).insert(goalPayload).select().single();
+                if (goalErr) throw goalErr;
 
-        // --- Hilfsfunktionen für Datenabruf (Client-seitig) ---
-        const formatCurrency = (amount) => {
-            return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount || 0);
+                const allocPayload = {
+                    piggybank_id: bankId,
+                    savinggoal_id: goalData.id,
+                    allocation_percent: goalRate
+                };
+                const { error: allocErr } = await supabase.from(COLLECTIONS.ALLOCATIONS).insert(allocPayload);
+                if (allocErr) throw allocErr;
+
+                showNotification(`Sparziel "${goalName}" mit ${goalRate}% Zuteilung erstellt.`, 'success');
+            } catch (error) {
+                console.error('addGoal error:', error);
+                showNotification('Fehler beim Erstellen des Sparziels.', 'error');
+            }
         };
 
-        // Formatiert den Firestore Timestamp in ein deutsches Datum
-        const formatTimestamp = (timestamp) => {
-            if (!timestamp || !timestamp.toDate) return 'Unbekanntes Datum';
-            return timestamp.toDate().toLocaleDateString('de-DE');
+        // addBudgetCategory: insert category + piggybank_budget_allocations
+        const addBudgetCategory = async (bankId, categoryName, monthlyLimit, allocationRate) => {
+            try {
+                const catPayload = {
+                    user_id: userId,
+                    name: categoryName,
+                    monthly_limit: monthlyLimit,
+                    current_usage: 0.00,
+                    color: null
+                };
+                const { data: catData, error: catErr } = await supabase.from(COLLECTIONS.CATEGORIES).insert(catPayload).select().single();
+                if (catErr) throw catErr;
+
+                const allocPayload = {
+                    user_id: userId,
+                    piggybank_id: bankId,
+                    category_id: catData.id,
+                    allocation_percent: allocationRate
+                };
+                const { error: allocErr } = await supabase.from(COLLECTIONS.BUDGETS).insert(allocPayload);
+                if (allocErr) throw allocErr;
+
+                showNotification(`Budget-Kategorie "${categoryName}" mit ${allocationRate}% Zuteilung erstellt.`, 'success');
+            } catch (error) {
+                console.error('addBudgetCategory error:', error);
+                showNotification('Fehler beim Erstellen der Budget-Kategorie.', 'error');
+            }
         };
 
-        const getPiggyBank = (id) => piggyBanks.find(b => b.id === id);
-        const getBankTransactions = (id) => transactions.filter(t => t.piggybank_id === id); // Bereits nach Datum sortiert
-        
-        const getBankGoals = (id) => {
-            // Finde alle Ziel-IDs, die diesem Sparschwein zugeordnet sind
-            const bankAllocation = goalAllocations.filter(a => a.piggybank_id === id);
-            
-            // Verknüpfe die Sparziele mit den Zuordnungsinformationen
-            return bankAllocation.map(allocation => {
-                const goal = savingGoals.find(g => g.id === allocation.savinggoal_id);
-                if (goal) {
-                    return {
-                        ...goal,
-                        allocation_percent: allocation.allocation_percent,
-                    };
-                }
-                return null;
-            }).filter(g => g !== null);
-        };
-
-        // NEUE HILFSFUNKTION FÜR BUDGETS
-        const getBankBudgets = (id) => {
-            // Finde alle Kategorie-IDs, die diesem Sparschwein zugeordnet sind
-            const bankAllocations = budgetAllocations.filter(a => a.piggybank_id === id);
-            
-            // Verknüpfe die Kategorien mit den Zuordnungsinformationen
-            return bankAllocations.map(allocation => {
-                const category = budgetCategories.find(c => c.id === allocation.category_id);
-                if (category) {
-                    // Simuliere den aktuellen Verbrauch basierend auf dem Limit (für Demo)
-                    const currentUsage = (category.monthly_limit || 0) * (Math.random() * 0.8 + 0.1); // Z.B. 10% bis 90% des Limits
-                    const remaining = (category.monthly_limit || 0) - currentUsage;
-                    
-                    return {
-                        ...category,
-                        ...allocation, // allocation_percent
-                        current_usage: parseFloat(currentUsage.toFixed(2)),
-                        remaining_budget: parseFloat(remaining.toFixed(2)),
-                    };
-                }
-                return null;
-            }).filter(c => c !== null);
-        };
-        
-
-        // --- Navigationslogik & UI Update ---
-
+        // ------------------------------------------------
+        // NAV & UI (unverändert Struktur; nur Datenquelle angepasst)
+        // ------------------------------------------------
         const updateNav = (activeView) => {
             document.querySelectorAll('.nav-item').forEach(item => {
                 const itemView = item.getAttribute('data-view');
-                // Der Navigationspunkt 'dashboard' ist jetzt der einzige. Er ist aktiv, 
-                // solange wir nicht in einer Sub-View sind, oder wenn wir im 'dashboard' sind.
                 const isActive = itemView === activeView || (activeView !== 'dashboard' && item.getAttribute('data-view') === 'dashboard');
                 item.classList.toggle('active', isActive);
             });
         };
 
         const updateUI = () => {
-            if (!isAuthReady || !userId) {
-                // Warte, bis der Auth-Status bekannt ist
-                return;
-            }
-            
+            if (!isAuthReady || !userId) return;
+
             const headerTitle = document.getElementById('header-title');
             const backButton = document.getElementById('back-button');
             const appHeader = document.getElementById('app-header');
-            
+
             let title = '';
             let showBackButton = false;
-            
-            // Setze den Header für die aktuelle Ansicht
+
             if (currentView === 'dashboard') {
                 title = 'Meine Sparwelt';
                 showBackButton = false;
@@ -635,12 +737,12 @@
                 headerTitle.classList.add('text-white');
             } else {
                 const bank = getPiggyBank(selectedPiggyBankId);
-                title = currentView === 'details' ? (bank ? bank.name : 'Sparschwein Details') : 
-                        currentView === 'goals' ? 'Sparziele verwalten' : 
-                        currentView === 'budget' ? 'Budget Planer' : // NEU: Budget View
+                title = currentView === 'details' ? (bank ? bank.name : 'Sparschwein Details') :
+                        currentView === 'goals' ? 'Sparziele verwalten' :
+                        currentView === 'budget' ? 'Budget Planer' :
                         'Alle Aktivitäten';
                 showBackButton = true;
-                appHeader.classList.remove('bg-primary-blue'); 
+                appHeader.classList.remove('bg-primary-blue');
                 appHeader.classList.add('shadow-lg', 'bg-white');
                 backButton.classList.remove('text-white');
                 backButton.classList.add('text-primary-blue');
@@ -650,9 +752,8 @@
 
             headerTitle.textContent = title;
             backButton.classList.toggle('hidden', !showBackButton);
-            updateNav(currentView); 
+            updateNav(currentView);
 
-            // Rendern des Inhalts
             switch (currentView) {
                 case 'dashboard':
                     renderDashboard();
@@ -666,7 +767,7 @@
                 case 'transactions':
                     renderTransactions();
                     break;
-                case 'budget': // NEU: Budget Detailansicht
+                case 'budget':
                     renderBudgetPlannerDetails();
                     break;
                 default:
@@ -678,39 +779,37 @@
             if (currentView === 'details') {
                 currentView = 'dashboard';
                 selectedPiggyBankId = null;
-            } 
-            // NEU: 'budget' hinzugefügt
-            else if (['goals', 'transactions', 'budget'].includes(currentView)) { 
+            } else if (['goals', 'transactions', 'budget'].includes(currentView)) {
                 currentView = 'details';
             }
             updateUI();
         };
-        
+
         const navigateTo = (view, id = null) => {
             if (id) selectedPiggyBankId = id;
 
             if (['goals', 'transactions', 'budget'].includes(view) && !selectedPiggyBankId) {
-                currentView = 'dashboard'; 
+                currentView = 'dashboard';
             } else {
-                 currentView = view;
+                currentView = view;
             }
             updateUI();
         };
 
-        // --- View 1: Dashboard (Sparschweine) ---
+        // --- Render Views (identisch zu vorher, nur Daten aus Supabase) ---
         const renderDashboard = () => {
             const content = document.getElementById('content');
             content.innerHTML = `
                 <div class="p-2 pt-0">
                     <h2 class="text-2xl font-bold mb-4 text-gray-800">Wähle dein Sparschwein</h2>
-                    <div class="grid grid-cols-1 gap-4"> 
+                    <div class="grid grid-cols-1 gap-4">
                         ${piggyBanks.map(bank => `
                             <div onclick="navigateTo('details', '${bank.id}')" 
                                  class="bg-card-light p-5 rounded-2xl shadow-xl border-b-4 border-primary-blue hover:shadow-2xl transition duration-300 transform hover:scale-[1.01] cursor-pointer">
                                 <div class="flex items-center space-x-4">
                                     <span class="text-3xl bg-yellow-400 p-3 rounded-full shadow-md">💰</span>
                                     <div>
-                                        <h3 class="text-lg font-bold text-gray-800">${bank.name}</h3>
+                                        <h3 class="text-lg font-bold text-gray-800">${bank.name || 'Unbenannt'}</h3>
                                         <p class="text-3xl font-extrabold text-secondary-green mt-1">${formatCurrency(bank.current_amount)}</p>
                                     </div>
                                 </div>
@@ -728,17 +827,16 @@
             `;
         };
 
-        // --- View 2: Sparschwein Details ---
         const renderPiggyBankDetails = () => {
             const bank = getPiggyBank(selectedPiggyBankId);
             if (!bank) { navigateTo('dashboard'); return; }
 
-            const transactionsList = getBankTransactions(bank.id).slice(0, 3); // Letzte 3
+            const transactionsList = getBankTransactions(bank.id).slice(0, 3);
             const goalsList = getBankGoals(bank.id);
-            const bankBudgets = getBankBudgets(bank.id); // NEU
-            
+            const bankBudgets = getBankBudgets(bank.id);
+
             let goalsHtml = goalsList.length > 0 ? goalsList.slice(0, 1).map(goal => {
-                const percentage = (goal.current_amount / goal.target_amount) * 100;
+                const percentage = (goal.current_amount / goal.target_amount) * 100 || 0;
                 const allocationText = goal.allocation_percent ? `(${goal.allocation_percent}%)` : '';
                 return `
                     <div class="mt-3">
@@ -752,14 +850,13 @@
                     </div>
                 `;
             }).join('') : '<p class="text-gray-500 italic text-sm">Noch keine Sparziele festgelegt.</p>';
-            
+
             if (goalsList.length > 1) {
                  goalsHtml += `<p class="text-xs text-gray-500 mt-1">und ${goalsList.length - 1} weitere Ziele...</p>`;
             }
 
-            // NEU: Budget HTML Block
             let budgetHtml = bankBudgets.length > 0 ? bankBudgets.slice(0, 1).map(budget => {
-                const usagePercentage = (budget.current_usage / budget.monthly_limit) * 100;
+                const usagePercentage = ((budget.current_usage || 0) / (budget.monthly_limit || 1)) * 100;
                 const progressBarColor = usagePercentage > 90 ? 'bg-red-500' : 'bg-primary-blue';
                 const allocationText = budget.allocation_percent ? `(${budget.allocation_percent}%)` : '';
                 return `
@@ -774,11 +871,10 @@
                     </div>
                 `;
             }).join('') : '<p class="text-gray-500 italic text-sm">Noch keine Budgets zugeordnet.</p>';
-            
+
             if (bankBudgets.length > 1) {
                  budgetHtml += `<p class="text-xs text-gray-500 mt-1">und ${bankBudgets.length - 1} weitere Budgets...</p>`;
             }
-
 
             const content = document.getElementById('content');
             content.innerHTML = `
@@ -803,7 +899,7 @@
                     </h3>
                     ${goalsHtml}
                 </div>
-                
+
                 <div onclick="navigateTo('budget', '${bank.id}')" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-secondary-green mt-6 hover:bg-gray-50 cursor-pointer transition">
                     <h3 class="text-lg font-bold text-secondary-green flex justify-between items-center">
                         📈 Budget Planer
@@ -822,7 +918,7 @@
                             <div class="flex items-center space-x-3">
                                 <span class="text-xl ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">${t.type === 'deposit' ? '🟢' : '🔴'}</span>
                                 <div>
-                                    <p class="font-medium text-gray-800 text-sm">${t.note || t.description || 'Kein Kommentar'}</p>
+                                    <p class="font-medium text-gray-800 text-sm">${t.note || 'Kein Kommentar'}</p>
                                     <p class="text-xs text-gray-500">${formatTimestamp(t.created_at)}</p>
                                 </div>
                             </div>
@@ -836,12 +932,11 @@
             `;
         };
 
-        // --- View 3: Sparziele verwalten ---
         const renderGoals = () => {
             const bank = getPiggyBank(selectedPiggyBankId);
             if (!bank) { navigateTo('dashboard'); return; }
             const bankGoals = getBankGoals(selectedPiggyBankId);
-            const totalContribution = bankGoals.reduce((sum, g) => sum + (g.allocation_percent || 0), 0);
+            const totalContribution = bankGoals.reduce((sum, g) => sum + (parseFloat(g.allocation_percent || 0)), 0);
 
             const content = document.getElementById('content');
             content.innerHTML = `
@@ -857,9 +952,9 @@
                     <p class="text-sm text-gray-500">Gesamt-Zuteilung von Einzahlungen auf dieses Sparschwein.</p>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4"> 
+                <div class="grid grid-cols-1 gap-4">
                     ${bankGoals.map(goal => {
-                        const percentage = Math.round((goal.current_amount / goal.target_amount) * 100);
+                        const percentage = Math.round((goal.current_amount / goal.target_amount) * 100) || 0;
                         return `
                             <div class="p-4 bg-card-light rounded-xl shadow-md border-l-4 border-red-500">
                                 <div class="flex justify-between items-start">
@@ -884,13 +979,12 @@
                 </div>
             `;
         };
-        
-        // --- View 4: Budget Planer Details (NEU) ---
+
         const renderBudgetPlannerDetails = () => {
             const bank = getPiggyBank(selectedPiggyBankId);
             if (!bank) { navigateTo('dashboard'); return; }
             const bankBudgets = getBankBudgets(selectedPiggyBankId);
-            const totalAllocation = bankBudgets.reduce((sum, b) => sum + (b.allocation_percent || 0), 0);
+            const totalAllocation = bankBudgets.reduce((sum, b) => sum + (parseFloat(b.allocation_percent || 0)), 0);
 
             const content = document.getElementById('content');
             content.innerHTML = `
@@ -906,11 +1000,11 @@
                     <p class="text-sm text-gray-500">Gesamt-Zuordnung des Sparschweins zu Budget-Kategorien (von Einzahlungen).</p>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4"> 
+                <div class="grid grid-cols-1 gap-4">
                     ${bankBudgets.map(budget => {
-                        const usagePercentage = Math.round((budget.current_usage / budget.monthly_limit) * 100);
+                        const usagePercentage = Math.round((budget.current_usage / (budget.monthly_limit || 1)) * 100);
                         const progressBarColor = usagePercentage > 90 ? 'bg-red-500' : 'bg-primary-blue';
-                        
+
                         return `
                             <div class="p-4 bg-card-light rounded-xl shadow-md border-l-4 ${progressBarColor}">
                                 <div class="flex justify-between items-start">
@@ -937,8 +1031,6 @@
             `;
         };
 
-
-        // --- View 5: Transaktionen ---
         const renderTransactions = () => {
             const bank = getPiggyBank(selectedPiggyBankId);
             if (!bank) { navigateTo('dashboard'); return; }
@@ -947,7 +1039,7 @@
             const content = document.getElementById('content');
             content.innerHTML = `
                 <h2 class="text-xl font-bold text-gray-700 mb-4 pt-2">Alle Bewegungen für ${bank.name}</h2>
-                
+
                 <div class="bg-card-light rounded-xl shadow-lg overflow-hidden max-h-[80vh]">
                     <div class="sticky top-0 bg-gray-100 flex justify-between p-3 font-semibold text-gray-600 text-sm border-b">
                         <span class="w-1/5">Datum</span>
@@ -974,15 +1066,16 @@
             `;
         };
 
-        
-        // --- Modal Logik ---
+        // ------------------------------------------------
+        // Modal management (same structure as before)
+        // ------------------------------------------------
         const openModal = (type) => {
             const container = document.getElementById('modal-container');
             let modalContent = '';
             let title = '';
             let actionColor = 'bg-primary-blue';
             const bank = getPiggyBank(selectedPiggyBankId);
-            
+
             if (['withdrawal', 'addGoal', 'addBudgetCategory'].includes(type) && !bank) return;
 
             switch (type) {
@@ -1007,7 +1100,6 @@
                 case 'addPiggyBank':
                     title = 'Neues Sparschwein hinzufügen';
                     actionColor = 'bg-primary-blue';
-                    // NEUE MODAL-STRUKTUR MIT ZWEI OPTIONEN
                     modalContent = `
                         <p class="text-gray-600 mb-6 text-center">Wie möchten Sie Ihr Sparschwein verbinden?</p>
                         <div class="grid grid-cols-2 gap-4">
@@ -1022,7 +1114,7 @@
                         </div>
                     `;
                     break;
-                case 'addBankManual': // Separate Ansicht für die manuelle Eingabe
+                case 'addBankManual':
                     title = 'Manuelles Sparschwein erstellen';
                     actionColor = 'bg-primary-blue';
                     modalContent = `
@@ -1057,7 +1149,7 @@
                         </form>
                     `;
                     break;
-                case 'addBudgetCategory': // NEU
+                case 'addBudgetCategory':
                     title = 'Neue Budget-Kategorie erstellen';
                     actionColor = 'bg-secondary-green';
                     modalContent = `
@@ -1080,10 +1172,9 @@
                     `;
                     break;
                 default:
-                    return; 
+                    return;
             }
 
-            // Modal HTML Struktur
             container.innerHTML = `
                 <div id="modal-backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity z-40" onclick="closeModal()"></div>
                 <div id="modal" class="fixed inset-0 z-50 overflow-y-auto">
@@ -1100,11 +1191,10 @@
                     </div>
                 </div>
             `;
-            
-            // Event Listener für Formulare hinzufügen
+
+            // Attach form submit handler
             document.getElementById('modal-container').querySelector('form')?.addEventListener('submit', (e) => {
                 e.preventDefault();
-                // Unterscheide zwischen manuellem Hinzufügen und den anderen Formulartypen
                 const formType = e.target.id === 'add-bank-manual-form' ? 'addBankManualSubmit' : type;
                 handleFormSubmit(formType, e.target);
             });
@@ -1114,29 +1204,26 @@
             document.getElementById('modal-container').innerHTML = '';
         };
 
-        // --- Formularverarbeitung ---
         const handleFormSubmit = async (type, form) => {
             let successMessage = 'Vorgang erfolgreich!';
-            
+
             try {
                 switch (type) {
                     case 'withdrawal':
                         const amount = parseFloat(form['withdrawal-amount'].value);
                         const note = form['withdrawal-note'].value;
                         if (isNaN(amount) || amount <= 0) throw new Error('Ungültiger Betrag.');
-                        
-                        // Überprüfung auf ausreichend Guthaben
-                        const bank = getPiggyBank(selectedPiggyBankId);
-                        if (bank.current_amount < amount) throw new Error(`Nicht genügend Guthaben: ${formatCurrency(bank.current_amount)}.`);
 
-                        // Transaktion als 'withdrawal' hinzufügen
+                        const bank = getPiggyBank(selectedPiggyBankId);
+                        if (parseFloat(bank.current_amount) < amount) throw new Error(`Nicht genügend Guthaben: ${formatCurrency(bank.current_amount)}.`);
+
                         await addTransaction(selectedPiggyBankId, 'withdrawal', amount, note);
                         break;
-                        
-                    case 'addBankManualSubmit': // Geänderter Typ für das manuelle Formular
+
+                    case 'addBankManualSubmit':
                         const bankName = form['bank-name-manual'].value;
                         if (!bankName) throw new Error('Bitte geben Sie einen Namen ein.');
-                        await addPiggyBank(bankName, 'MANUAL'); // 'MANUAL' als device_id setzen
+                        await addPiggyBank(bankName, 'MANUAL');
                         break;
 
                     case 'addGoal':
@@ -1146,87 +1233,51 @@
                         const goalName = form['goal-name'].value;
                         const goalTarget = parseFloat(form['goal-target'].value);
                         const goalRate = parseInt(form['goal-rate'].value);
-                        
+
                         if (isNaN(goalTarget) || goalTarget <= 0 || isNaN(goalRate) || goalRate < 0 || goalRate > 100) throw new Error('Ungültige Ziel-/Ratenwerte.');
-                        
-                        // 1. Speichere das Ziel (SavingGoal)
-                        const goalRef = await firebase.addDoc(firebase.collection(db, getCollectionPath(COLLECTIONS.GOALS)), {
-                            user_id: userId,
-                            name: goalName,
-                            target_amount: goalTarget,
-                            current_amount: 0.00,
-                            color: 'bg-' + ['blue', 'green', 'yellow', 'red', 'indigo'][Math.floor(Math.random() * 5)] + '-500', 
-                            created_at: firebase.serverTimestamp(),
-                        });
-                        
-                        // 2. Speichere die Zuordnung (PiggyBankSavingGoal)
-                        await firebase.addDoc(firebase.collection(db, getCollectionPath(COLLECTIONS.ALLOCATIONS)), {
-                            piggybank_id: selectedPiggyBankId,
-                            savinggoal_id: goalRef.id,
-                            allocation_percent: goalRate,
-                            created_at: firebase.serverTimestamp(),
-                        });
-                        
+
+                        await addGoal(selectedPiggyBankId, goalName, goalTarget, goalRate);
                         successMessage = `Sparziel "${goalName}" mit ${goalRate}% Zuteilung erstellt.`;
                         break;
 
-                    case 'addBudgetCategory': // NEU
+                    case 'addBudgetCategory':
                         const currentBankBudget = getPiggyBank(selectedPiggyBankId);
                         if (!currentBankBudget) throw new Error('Kein Sparschwein ausgewählt.');
 
                         const categoryName = form['category-name'].value;
                         const monthlyLimit = parseFloat(form['monthly-limit'].value);
                         const allocationRate = parseInt(form['allocation-rate'].value);
-                        
+
                         if (isNaN(monthlyLimit) || monthlyLimit <= 0 || isNaN(allocationRate) || allocationRate < 0 || allocationRate > 100) throw new Error('Ungültige Limit-/Ratenwerte.');
-                        
-                        // 1. Speichere die Kategorie (BudgetCategory)
-                        const categoryRef = await firebase.addDoc(firebase.collection(db, getCollectionPath(COLLECTIONS.CATEGORIES)), {
-                            user_id: userId,
-                            name: categoryName,
-                            monthly_limit: monthlyLimit,
-                            // current_usage wird auf 0 gesetzt und später durch Transaktionen aktualisiert
-                            current_usage: 0.00, 
-                            color: 'bg-' + ['blue', 'green', 'yellow', 'red', 'indigo'][Math.floor(Math.random() * 5)] + '-500', 
-                            created_at: firebase.serverTimestamp(),
-                        });
-                        
-                        // 2. Speichere die Zuordnung (PiggyBankBudgetAllocation)
-                        await firebase.addDoc(firebase.collection(db, getCollectionPath(COLLECTIONS.BUDGETS)), {
-                            piggybank_id: selectedPiggyBankId,
-                            category_id: categoryRef.id,
-                            allocation_percent: allocationRate,
-                            created_at: firebase.serverTimestamp(),
-                        });
-                        
+
+                        await addBudgetCategory(selectedPiggyBankId, categoryName, monthlyLimit, allocationRate);
                         successMessage = `Budget-Kategorie "${categoryName}" mit ${allocationRate}% Zuteilung erstellt.`;
                         break;
+
                     default:
                         throw new Error('Unbekannter Formulartyp.');
                 }
-                
-                showNotification(successMessage, 'success');
 
+                showNotification(successMessage, 'success');
             } catch (error) {
-                console.error("Formularfehler:", error);
-                showNotification(error.message, 'error');
+                console.error('Formularfehler:', error);
+                showNotification(error.message || 'Fehler im Formular.', 'error');
             }
 
             closeModal();
-            // updateUI wird durch den onSnapshot Listener ausgelöst
         };
 
-        // --- Benachrichtigungsfunktion (Statt alert) ---
+        // Simple notification UI
         const showNotification = (message, type = 'info') => {
             const container = document.getElementById('modal-container');
             const color = type === 'success' ? 'bg-secondary-green' : type === 'error' ? 'bg-red-500' : 'bg-primary-blue';
-            
+
             const notification = document.createElement('div');
             notification.className = `${color} text-white p-4 rounded-xl shadow-xl fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform scale-0 opacity-0 text-sm font-medium`;
             notification.textContent = message;
 
             container.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.classList.remove('scale-0', 'opacity-0');
                 notification.classList.add('scale-100', 'opacity-100');
@@ -1239,15 +1290,27 @@
             }, 3000);
         };
 
-
-        // --- Initialisierung ---
+        // ------------------------------------------------
+        // INITIALIZE: wire up form listeners, start auth
+        // ------------------------------------------------
         document.addEventListener('DOMContentLoaded', () => {
-            // Zeige das Lade-Overlay, bis der Auth-Status geklärt ist
-            document.getElementById('loading-overlay').classList.remove('hidden'); 
-            // Starte die gesamte Firebase-Logik
-            setupFirebase();
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
+            document.getElementById('toggle-auth-mode').addEventListener('click', toggleAuthMode);
+
+            // Start auth listener
+            setupSupabaseAuth();
         });
 
+        // Expose some functions to global scope used by inline HTML onclick attributes
+        window.navigateTo = navigateTo;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.goBack = goBack;
+        window.handleLogout = handleLogout;
+
+        // Provide a small utility to start listeners manually (if needed)
+        window.__startSupabaseListeners = startSupabaseListeners;
     </script>
 </body>
 </html>
