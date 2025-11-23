@@ -189,11 +189,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3 .895-3 2 1.343 2 3 2m0-8V4m0 12v4m-6-2h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     <span class="text-xs mt-1">Sparschweine</span>
                 </div>
-                <div class="nav-item" data-view="budget" onclick="navigateTo('budget', null)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                    <span class="text-xs mt-1">Budget</span>
-                </div>
-            </nav>
+                </nav>
 
             <div id="modal-container"></div>
         </div>
@@ -232,13 +228,19 @@
         let savingGoals = []; // SavingGoal
         let goalAllocations = []; // PiggyBankSavingGoal
         let transactions = []; // Transaction
+        // NEU: Budget-Daten
+        let budgetCategories = []; // BudgetCategory
+        let budgetAllocations = []; // PiggyBankBudgetAllocation
         
         // Konstanten für Firebase Collection Namen
         const COLLECTIONS = {
             BANKS: 'piggyBanks',
             GOALS: 'savingGoals',
             ALLOCATIONS: 'piggyBankGoalAllocations',
-            TRANSACTIONS: 'transactions'
+            TRANSACTIONS: 'transactions',
+            // NEU: Budget-Collections
+            CATEGORIES: 'budgetCategories',
+            BUDGETS: 'piggyBankBudgetAllocations'
         };
 
         // --- HILFSFUNKTIONEN FÜR DATENBANKPFADE ---
@@ -409,6 +411,8 @@
             savingGoals = [];
             goalAllocations = [];
             transactions = [];
+            budgetCategories = []; // NEU
+            budgetAllocations = []; // NEU
         };
 
         // Startet alle onSnapshot Listener
@@ -455,6 +459,24 @@
                 updateUI();
             }, (error) => console.error("Error fetching transactions:", error));
             unsubscribeListeners.push(unsubTransactions);
+
+            // NEU: 5. Budget-Kategorien (BudgetCategory)
+            const categoriesQuery = firebase.query(firebase.collection(db, getCollectionPath(COLLECTIONS.CATEGORIES)));
+            const unsubCategories = firebase.onSnapshot(categoriesQuery, (snapshot) => {
+                budgetCategories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log("Budget-Kategorien aktualisiert:", budgetCategories.length);
+                updateUI();
+            }, (error) => console.error("Error fetching budgetCategories:", error));
+            unsubscribeListeners.push(unsubCategories);
+
+            // NEU: 6. Budget-Zuordnungen (PiggyBankBudgetAllocation)
+            const budgetsQuery = firebase.query(firebase.collection(db, getCollectionPath(COLLECTIONS.BUDGETS)));
+            const unsubBudgets = firebase.onSnapshot(budgetsQuery, (snapshot) => {
+                budgetAllocations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log("Budget-Zuordnungen aktualisiert:", budgetAllocations.length);
+                updateUI();
+            }, (error) => console.error("Error fetching budgetAllocations:", error));
+            unsubscribeListeners.push(unsubBudgets);
             
             // Initiales Rendern
             updateUI();
@@ -508,7 +530,7 @@
                     });
                 }
                 
-                // ** HINWEIS: Hier müsste später die Logik zur Aufteilung auf Sparziele hin **
+                // ** HINWEIS: Hier müsste später die Logik zur Aufteilung auf Sparziele/Budgets hin **
                 // if (type === 'deposit') { runAllocationLogic(bankId, amount); }
 
                 showNotification(`${type === 'deposit' ? '+' : '-'} ${formatCurrency(amount)} verbucht.`, 'success');
@@ -533,6 +555,7 @@
 
         const getPiggyBank = (id) => piggyBanks.find(b => b.id === id);
         const getBankTransactions = (id) => transactions.filter(t => t.piggybank_id === id); // Bereits nach Datum sortiert
+        
         const getBankGoals = (id) => {
             // Finde alle Ziel-IDs, die diesem Sparschwein zugeordnet sind
             const bankAllocation = goalAllocations.filter(a => a.piggybank_id === id);
@@ -549,6 +572,30 @@
                 return null;
             }).filter(g => g !== null);
         };
+
+        // NEUE HILFSFUNKTION FÜR BUDGETS
+        const getBankBudgets = (id) => {
+            // Finde alle Kategorie-IDs, die diesem Sparschwein zugeordnet sind
+            const bankAllocations = budgetAllocations.filter(a => a.piggybank_id === id);
+            
+            // Verknüpfe die Kategorien mit den Zuordnungsinformationen
+            return bankAllocations.map(allocation => {
+                const category = budgetCategories.find(c => c.id === allocation.category_id);
+                if (category) {
+                    // Simuliere den aktuellen Verbrauch basierend auf dem Limit (für Demo)
+                    const currentUsage = (category.monthly_limit || 0) * (Math.random() * 0.8 + 0.1); // Z.B. 10% bis 90% des Limits
+                    const remaining = (category.monthly_limit || 0) - currentUsage;
+                    
+                    return {
+                        ...category,
+                        ...allocation, // allocation_percent
+                        current_usage: parseFloat(currentUsage.toFixed(2)),
+                        remaining_budget: parseFloat(remaining.toFixed(2)),
+                    };
+                }
+                return null;
+            }).filter(c => c !== null);
+        };
         
 
         // --- Navigationslogik & UI Update ---
@@ -556,7 +603,9 @@
         const updateNav = (activeView) => {
             document.querySelectorAll('.nav-item').forEach(item => {
                 const itemView = item.getAttribute('data-view');
-                const isActive = itemView === activeView || (activeView !== 'dashboard' && activeView !== 'budget' && item.getAttribute('data-view') === 'dashboard');
+                // Der Navigationspunkt 'dashboard' ist jetzt der einzige. Er ist aktiv, 
+                // solange wir nicht in einer Sub-View sind, oder wenn wir im 'dashboard' sind.
+                const isActive = itemView === activeView || (activeView !== 'dashboard' && item.getAttribute('data-view') === 'dashboard');
                 item.classList.toggle('active', isActive);
             });
         };
@@ -584,19 +633,12 @@
                 backButton.classList.add('text-white');
                 headerTitle.classList.remove('text-gray-800');
                 headerTitle.classList.add('text-white');
-            } else if (currentView === 'budget') {
-                title = 'Budget-Planer';
-                showBackButton = false;
-                appHeader.classList.add('bg-primary-blue');
-                appHeader.classList.remove('shadow-none', 'bg-white');
-                backButton.classList.remove('text-primary-blue');
-                backButton.classList.add('text-white');
-                headerTitle.classList.remove('text-gray-800');
-                headerTitle.classList.add('text-white');
             } else {
                 const bank = getPiggyBank(selectedPiggyBankId);
                 title = currentView === 'details' ? (bank ? bank.name : 'Sparschwein Details') : 
-                        currentView === 'goals' ? 'Sparziele verwalten' : 'Alle Aktivitäten';
+                        currentView === 'goals' ? 'Sparziele verwalten' : 
+                        currentView === 'budget' ? 'Budget Planer' : // NEU: Budget View
+                        'Alle Aktivitäten';
                 showBackButton = true;
                 appHeader.classList.remove('bg-primary-blue'); 
                 appHeader.classList.add('shadow-lg', 'bg-white');
@@ -624,8 +666,8 @@
                 case 'transactions':
                     renderTransactions();
                     break;
-                case 'budget':
-                    renderBudgetPlanner(); // NEU
+                case 'budget': // NEU: Budget Detailansicht
+                    renderBudgetPlannerDetails();
                     break;
                 default:
                     renderDashboard();
@@ -637,7 +679,8 @@
                 currentView = 'dashboard';
                 selectedPiggyBankId = null;
             } 
-            else if (['goals', 'transactions'].includes(currentView)) {
+            // NEU: 'budget' hinzugefügt
+            else if (['goals', 'transactions', 'budget'].includes(currentView)) { 
                 currentView = 'details';
             }
             updateUI();
@@ -646,7 +689,7 @@
         const navigateTo = (view, id = null) => {
             if (id) selectedPiggyBankId = id;
 
-            if (['goals', 'transactions'].includes(view) && !selectedPiggyBankId) {
+            if (['goals', 'transactions', 'budget'].includes(view) && !selectedPiggyBankId) {
                 currentView = 'dashboard'; 
             } else {
                  currentView = view;
@@ -692,6 +735,7 @@
 
             const transactionsList = getBankTransactions(bank.id).slice(0, 3); // Letzte 3
             const goalsList = getBankGoals(bank.id);
+            const bankBudgets = getBankBudgets(bank.id); // NEU
             
             let goalsHtml = goalsList.length > 0 ? goalsList.slice(0, 1).map(goal => {
                 const percentage = (goal.current_amount / goal.target_amount) * 100;
@@ -712,6 +756,29 @@
             if (goalsList.length > 1) {
                  goalsHtml += `<p class="text-xs text-gray-500 mt-1">und ${goalsList.length - 1} weitere Ziele...</p>`;
             }
+
+            // NEU: Budget HTML Block
+            let budgetHtml = bankBudgets.length > 0 ? bankBudgets.slice(0, 1).map(budget => {
+                const usagePercentage = (budget.current_usage / budget.monthly_limit) * 100;
+                const progressBarColor = usagePercentage > 90 ? 'bg-red-500' : 'bg-primary-blue';
+                const allocationText = budget.allocation_percent ? `(${budget.allocation_percent}%)` : '';
+                return `
+                    <div class="mt-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-semibold text-gray-700 truncate">${budget.name} ${allocationText}</span>
+                            <span class="text-sm font-medium text-primary-blue">Verbleibend: ${formatCurrency(budget.remaining_budget)}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full ${progressBarColor}" style="width: ${Math.min(100, usagePercentage)}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('') : '<p class="text-gray-500 italic text-sm">Noch keine Budgets zugeordnet.</p>';
+            
+            if (bankBudgets.length > 1) {
+                 budgetHtml += `<p class="text-xs text-gray-500 mt-1">und ${bankBudgets.length - 1} weitere Budgets...</p>`;
+            }
+
 
             const content = document.getElementById('content');
             content.innerHTML = `
@@ -737,6 +804,14 @@
                     ${goalsHtml}
                 </div>
                 
+                <div onclick="navigateTo('budget', '${bank.id}')" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-secondary-green mt-6 hover:bg-gray-50 cursor-pointer transition">
+                    <h3 class="text-lg font-bold text-secondary-green flex justify-between items-center">
+                        📈 Budget Planer
+                        <span class="text-sm font-medium text-secondary-green">${bankBudgets.length} Budgets</span>
+                    </h3>
+                    ${budgetHtml}
+                </div>
+
                 <div onclick="navigateTo('transactions', '${bank.id}')" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-primary-blue mt-6 hover:bg-gray-50 cursor-pointer transition">
                     <h3 class="text-lg font-bold text-primary-blue flex justify-between items-center mb-3">
                         📋 Letzte Aktivität
@@ -752,7 +827,7 @@
                                 </div>
                             </div>
                             <span class="font-bold text-sm ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">
-                                ${t.type === 'deposit' ? '+' : '-'} ${formatCurrency(t.amount)}
+                                ${t.type === 'deposit' ? '+' : '-'}&nbsp;${formatCurrency(t.amount)}
                             </span>
                         </div>
                     `).join('')}
@@ -809,8 +884,61 @@
                 </div>
             `;
         };
+        
+        // --- View 4: Budget Planer Details (NEU) ---
+        const renderBudgetPlannerDetails = () => {
+            const bank = getPiggyBank(selectedPiggyBankId);
+            if (!bank) { navigateTo('dashboard'); return; }
+            const bankBudgets = getBankBudgets(selectedPiggyBankId);
+            const totalAllocation = bankBudgets.reduce((sum, b) => sum + (b.allocation_percent || 0), 0);
 
-        // --- View 4: Transaktionen ---
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="flex justify-between items-center mb-6 pt-2">
+                    <h2 class="text-xl font-bold text-gray-700">Budget Planer für ${bank.name}</h2>
+                    <button onclick="openModal('addBudgetCategory')" class="flex items-center bg-primary-blue text-white px-3 py-1 text-sm rounded-full shadow-md hover:bg-indigo-600 transition">
+                        <span class="text-lg mr-1">+</span> Budget
+                    </button>
+                </div>
+
+                <div class="bg-card-light p-5 rounded-xl shadow-lg mb-6 text-center border-b-4 ${totalAllocation > 100 ? 'border-red-500' : 'border-primary-blue'}">
+                    <p class="text-xl font-extrabold ${totalAllocation > 100 ? 'text-red-500' : 'text-primary-blue'}">${totalAllocation}% Zuordnung</p>
+                    <p class="text-sm text-gray-500">Gesamt-Zuordnung des Sparschweins zu Budget-Kategorien (von Einzahlungen).</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4"> 
+                    ${bankBudgets.map(budget => {
+                        const usagePercentage = Math.round((budget.current_usage / budget.monthly_limit) * 100);
+                        const progressBarColor = usagePercentage > 90 ? 'bg-red-500' : 'bg-primary-blue';
+                        
+                        return `
+                            <div class="p-4 bg-card-light rounded-xl shadow-md border-l-4 ${progressBarColor}">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-lg font-bold text-gray-800">${budget.name}</p>
+                                        <p class="text-sm text-gray-500">Zuteilung: ${budget.allocation_percent}%</p>
+                                    </div>
+                                    <p class="text-xl font-extrabold text-primary-blue">${formatCurrency(budget.remaining_budget)}</p>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="w-full bg-gray-200 rounded-full h-3">
+                                        <div class="h-3 rounded-full ${progressBarColor}" style="width: ${Math.min(100, usagePercentage)}%"></div>
+                                    </div>
+                                    <div class="flex justify-between text-xs mt-1 text-gray-500">
+                                        <span>${usagePercentage}% verbraucht</span>
+                                        <span class="font-medium">Limit: ${formatCurrency(budget.monthly_limit)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                ${bankBudgets.length === 0 ? '<p class="text-center p-8 text-gray-500 italic">Noch keine Budget-Kategorien zugeordnet.</p>' : ''}
+            `;
+        };
+
+
+        // --- View 5: Transaktionen ---
         const renderTransactions = () => {
             const bank = getPiggyBank(selectedPiggyBankId);
             if (!bank) { navigateTo('dashboard'); return; }
@@ -836,7 +964,7 @@
                                 </div>
                                 <span class="w-1/5 text-xs font-medium ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">${t.type === 'deposit' ? 'Einzahlung' : 'Auszahlung'}</span>
                                 <span class="w-1/5 text-right font-bold text-sm ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">
-                                    ${t.type === 'deposit' ? '+' : '-'} ${formatCurrency(t.amount)}
+                                    ${t.type === 'deposit' ? '+' : '-'}&nbsp;${formatCurrency(t.amount)}
                                 </span>
                             </div>
                         `).join('')}
@@ -846,23 +974,6 @@
             `;
         };
 
-        // --- View 5: Budgetplaner (NEU) ---
-        const renderBudgetPlanner = () => {
-            const content = document.getElementById('content');
-            content.innerHTML = `
-                <div class="p-4 pt-2">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Budget-Planung (In Entwicklung)</h2>
-                    <div class="bg-card-light p-6 rounded-xl shadow-lg text-center">
-                        <span class="text-6xl mb-4 block">🗓️</span>
-                        <p class="text-lg font-semibold text-gray-700">Hier entsteht Ihr persönlicher Budget-Planer!</p>
-                        <p class="text-sm text-gray-500 mt-2">Verfolgen Sie Ihre Einnahmen, Ausgaben und Sparziele auf Monatsbasis.</p>
-                        <div class="mt-6 p-4 bg-yellow-50 rounded-lg">
-                            <p class="text-sm font-medium text-yellow-800">Aktuelle Funktion: Nur Sparschweine & Ziele verfügbar.</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        };
         
         // --- Modal Logik ---
         const openModal = (type) => {
@@ -872,7 +983,7 @@
             let actionColor = 'bg-primary-blue';
             const bank = getPiggyBank(selectedPiggyBankId);
             
-            if (type === 'withdrawal' && !bank) return;
+            if (['withdrawal', 'addGoal', 'addBudgetCategory'].includes(type) && !bank) return;
 
             switch (type) {
                 case 'withdrawal':
@@ -946,6 +1057,28 @@
                         </form>
                     `;
                     break;
+                case 'addBudgetCategory': // NEU
+                    title = 'Neue Budget-Kategorie erstellen';
+                    actionColor = 'bg-secondary-green';
+                    modalContent = `
+                        <form id="budget-category-form" class="space-y-4">
+                            <div>
+                                <label for="category-name" class="block text-sm font-medium text-gray-700">Name der Kategorie</label>
+                                <input type="text" id="category-name" name="category-name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-secondary-green focus:border-secondary-green">
+                            </div>
+                            <div>
+                                <label for="monthly-limit" class="block text-sm font-medium text-gray-700">Monatliches Limit in EUR</label>
+                                <input type="number" step="0.01" id="monthly-limit" name="monthly-limit" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-secondary-green focus:border-secondary-green" placeholder="z.B. 150.00">
+                            </div>
+                            <div class="mt-6 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <label for="allocation-rate" class="block text-sm font-bold text-green-700">Zuteilungsrate auf Sparschwein (${bank.name}) in %</label>
+                                <input type="number" id="allocation-rate" name="allocation-rate" min="0" max="100" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-secondary-green focus:border-secondary-green" placeholder="z.B. 50">
+                                <p class="text-xs text-green-500 mt-1">Dieser Anteil wird von Einzahlungen dieses Sparschweins dieser Kategorie zugeordnet.</p>
+                            </div>
+                            <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Kategorie speichern</button>
+                        </form>
+                    `;
+                    break;
                 default:
                     return; 
             }
@@ -1007,8 +1140,8 @@
                         break;
 
                     case 'addGoal':
-                        const currentBank = getPiggyBank(selectedPiggyBankId);
-                        if (!currentBank) throw new Error('Kein Sparschwein ausgewählt.');
+                        const currentBankGoal = getPiggyBank(selectedPiggyBankId);
+                        if (!currentBankGoal) throw new Error('Kein Sparschwein ausgewählt.');
 
                         const goalName = form['goal-name'].value;
                         const goalTarget = parseFloat(form['goal-target'].value);
@@ -1035,6 +1168,38 @@
                         });
                         
                         successMessage = `Sparziel "${goalName}" mit ${goalRate}% Zuteilung erstellt.`;
+                        break;
+
+                    case 'addBudgetCategory': // NEU
+                        const currentBankBudget = getPiggyBank(selectedPiggyBankId);
+                        if (!currentBankBudget) throw new Error('Kein Sparschwein ausgewählt.');
+
+                        const categoryName = form['category-name'].value;
+                        const monthlyLimit = parseFloat(form['monthly-limit'].value);
+                        const allocationRate = parseInt(form['allocation-rate'].value);
+                        
+                        if (isNaN(monthlyLimit) || monthlyLimit <= 0 || isNaN(allocationRate) || allocationRate < 0 || allocationRate > 100) throw new Error('Ungültige Limit-/Ratenwerte.');
+                        
+                        // 1. Speichere die Kategorie (BudgetCategory)
+                        const categoryRef = await firebase.addDoc(firebase.collection(db, getCollectionPath(COLLECTIONS.CATEGORIES)), {
+                            user_id: userId,
+                            name: categoryName,
+                            monthly_limit: monthlyLimit,
+                            // current_usage wird auf 0 gesetzt und später durch Transaktionen aktualisiert
+                            current_usage: 0.00, 
+                            color: 'bg-' + ['blue', 'green', 'yellow', 'red', 'indigo'][Math.floor(Math.random() * 5)] + '-500', 
+                            created_at: firebase.serverTimestamp(),
+                        });
+                        
+                        // 2. Speichere die Zuordnung (PiggyBankBudgetAllocation)
+                        await firebase.addDoc(firebase.collection(db, getCollectionPath(COLLECTIONS.BUDGETS)), {
+                            piggybank_id: selectedPiggyBankId,
+                            category_id: categoryRef.id,
+                            allocation_percent: allocationRate,
+                            created_at: firebase.serverTimestamp(),
+                        });
+                        
+                        successMessage = `Budget-Kategorie "${categoryName}" mit ${allocationRate}% Zuteilung erstellt.`;
                         break;
                     default:
                         throw new Error('Unbekannter Formulartyp.');
@@ -1086,4 +1251,3 @@
     </script>
 </body>
 </html>
-```
