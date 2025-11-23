@@ -200,24 +200,23 @@
     </div>
 
     <script>
+        // **********************************************
+        // ** KORRIGIERTER BLOCK FÜR FIREBASE-KONFIGURATION **
+        // **********************************************
+        
+        // IHRE FIREBASE-KONFIGURATION (Hart codiert als Fallback für lokale Tests):
+        // WICHTIG: Diese JSON-Zeichenkette wird verwendet, wenn die App nicht in der 
+        // Canvas-Umgebung ausgeführt wird.
+        const USER_FIREBASE_CONFIG_STRING = '{"apiKey":"AIzaSyCIFRKqBrugb_oHUWfxUnJa6UtgfZ2Aq3s","authDomain":"sparify-bd79e.firebaseapp.com","projectId":"sparify-bd79e","storageBucket":"sparify-bd79e.firebasestorage.app","messagingSenderId":"958598659366","appId":"1:958598659366:web:d53152dd669216415d15e7","measurementId":"G-XHH44C9LER"}';
+        
         // ** GLOBALE VARIABLEN (Von der Canvas-Umgebung bereitgestellt) **
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{apiKey: "AIzaSyCIFRKqBrugb_oHUWfxUnJa6UtgfZ2Aq3s",
-
-    authDomain: "sparify-bd79e.firebaseapp.com",
-
-    projectId: "sparify-bd79e",
-
-    storageBucket: "sparify-bd79e.firebasestorage.app",
-
-    messagingSenderId: "958598659366",
-
-    appId: "1:958598659366:web:d53152dd669216415d15e7",
-
-    measurementId: "G-XHH44C9LER"
-}');
+        // Stellt sicher, dass die Firebase-Konfiguration geladen wird:
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sparify-bd79e'; // Nutzt "projectId" als Fallback
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : USER_FIREBASE_CONFIG_STRING);
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
+        
+        // **********************************************
+        
         // ** FIREBASE INITIALISIERUNG **
         let app, auth, db;
         let unsubscribeListeners = []; // Speichert alle onSnapshot Abonnements
@@ -269,12 +268,23 @@
                 db = firebase.getFirestore(app);
             } catch (error) {
                 console.error("Firebase Initialisierung fehlgeschlagen:", error);
-                showNotification("Fehler bei der Initialisierung.", 'error');
+                showNotification("Fehler bei der Initialisierung. Prüfen Sie die Konfiguration.", 'error');
                 return;
             }
 
+            // NEUER FALLBACK-TIMEOUT: Stoppt das Lade-Overlay, falls Auth länger als 5s hängt
+            const fallbackTimeout = setTimeout(() => {
+                if (!isAuthReady) {
+                    console.warn("Firebase-Verbindung Timeout. Zeige Login-Ansicht an.");
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                    document.getElementById('auth-message').textContent = "Achtung: Die Anmeldung hat lange gedauert. Bitte versuchen Sie es manuell.";
+                    document.getElementById('auth-view').classList.remove('hidden');
+                }
+            }, 5000); // 5 Sekunden Timeout
+
             // Auth State Listener
             firebase.onAuthStateChanged(auth, async (user) => {
+                clearTimeout(fallbackTimeout); // Timer stoppen, wenn Auth Status empfangen wurde
                 const loadingOverlay = document.getElementById('loading-overlay');
                 loadingOverlay.classList.add('hidden'); // Blende das Laden-Overlay aus, sobald die Auth-Prüfung beendet ist
 
@@ -991,7 +1001,7 @@
                         break;
                         
                     case 'addBankManualSubmit': // Geänderter Typ für das manuelle Formular
-                        const bankName = form['bank-name'].value;
+                        const bankName = form['bank-name-manual'].value;
                         if (!bankName) throw new Error('Bitte geben Sie einen Namen ein.');
                         await addPiggyBank(bankName, 'MANUAL'); // 'MANUAL' als device_id setzen
                         break;
