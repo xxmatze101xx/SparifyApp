@@ -202,7 +202,20 @@
     <script>
         // ** GLOBALE VARIABLEN (Von der Canvas-Umgebung bereitgestellt) **
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{apiKey: "AIzaSyCIFRKqBrugb_oHUWfxUnJa6UtgfZ2Aq3s",
+
+    authDomain: "sparify-bd79e.firebaseapp.com",
+
+    projectId: "sparify-bd79e",
+
+    storageBucket: "sparify-bd79e.firebasestorage.app",
+
+    messagingSenderId: "958598659366",
+
+    appId: "1:958598659366:web:d53152dd669216415d15e7",
+
+    measurementId: "G-XHH44C9LER"
+}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // ** FIREBASE INITIALISIERUNG **
