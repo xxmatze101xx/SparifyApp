@@ -554,68 +554,117 @@
     /**
      * NEU: Führt alle 6 Datenbankabfragen parallel aus, um die Ladezeit zu verkürzen.
      */
+    /**
+     * KORRIGIERT: Führt die Abfragen sequenziell/parallel in einer RLS-freundlichen Weise aus,
+     * indem Allocation-Filterungen auf expliziten Piggybank-IDs basieren.
+     */
+    /**
+     * KORRIGIERT & ERWEITERT: Führt die Abfragen mit Logging aus, um den Fortschritt zu verfolgen.
+     * BITTE BEACHTEN: Dies ersetzt die komplette fetchAllData Funktion in Ihrer index.html.
+     */
     const fetchAllData = async () => {
-        if (!userId) return;
+        console.log("-----------------------------------------");
+        console.log("SCHRITT 1: fetchAllData gestartet.");
+        
+        // Überprüft, ob der Benutzer eingeloggt ist
+        if (!userId) {
+            console.log("SCHRITT 1.1: Abbruch, da keine Benutzer-ID verfügbar ist.");
+            return;
+        }
+        
+        // --- 1. Sparschweine zuerst holen (Sequenziell, da wichtig für Filterung) ---
         try {
-            // Alle Abfragen parallel starten (Promise.all)
+            console.log("SCHRITT 2: Versuche, physical_piggybanks (Banks) für User:", userId, "abzurufen...");
+            const { data: banks, error: banksErr } = await supabase
+                .from(COLLECTIONS.BANKS)
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+
+            if (banksErr) throw { table: COLLECTIONS.BANKS, error: banksErr }; // Fehler mit Tabellenname werfen
+            
+            piggyBanks = banks || [];
+            console.log("SCHRITT 2.1: physical_piggybanks erfolgreich geladen. Anzahl:", piggyBanks.length);
+            
+            // Wenn keine Sparschweine gefunden wurden, Ladevorgang beenden
+            if (piggyBanks.length === 0) {
+                console.log("SCHRITT 2.2: Keine Sparschweine gefunden. Beende Ladevorgang.");
+                savingGoals = []; transactions = []; budgetCategories = [];
+                goalAllocations = []; budgetAllocations = [];
+                updateUI();
+                console.log("SCHRITT 5: UI aktualisiert. fetchAllData beendet.");
+                return;
+            }
+
+            // IDs der gefundenen Sparschweine für die IN-Filterung der Allocation-Tabellen vorbereiten
+            const piggyBankIds = piggyBanks.map(b => b.id);
+            console.log("SCHRITT 3: Piggybank-IDs für IN-Filter vorbereitet:", piggyBankIds);
+
+            // --- 2. Restliche Daten parallel holen (Jetzt mit IN-Filter) ---
+            console.log("SCHRITT 4: Starte Promise.all, um restliche 5 Tabellen parallel abzufragen...");
+            
+            // Alle Abfragen, die user_id filtern, oder die Allocation-Tabellen, die piggybank_id filtern.
             const [
-                { data: banks, error: banksErr },
                 { data: goals, error: goalsErr },
                 { data: allocs, error: allocErr },
                 { data: trans, error: transErr },
                 { data: cats, error: catsErr },
                 { data: ballocs, error: ballocErr }
             ] = await Promise.all([
-                // 1. PiggyBanks
-                supabase.from(COLLECTIONS.BANKS).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-                // 2. SavingGoals
+                // 1. SavingGoals
                 supabase.from(COLLECTIONS.GOALS).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-                // 3. GoalAllocations (JOIN für Filterung)
-                supabase.from(COLLECTIONS.ALLOCATIONS).select('*, piggybank:physical_piggybanks!inner(user_id)'),
-                // 4. Transactions
+                
+                // 2. GoalAllocations (Verwendet IN-Filter)
+                supabase.from(COLLECTIONS.ALLOCATIONS).select('*').in('piggybank_id', piggyBankIds),
+                
+                // 3. Transactions
                 supabase.from(COLLECTIONS.TRANSACTIONS).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-                // 5. BudgetCategories
+                
+                // 4. BudgetCategories
                 supabase.from(COLLECTIONS.CATEGORIES).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-                // 6. BudgetAllocations (JOIN für Filterung)
-                supabase.from(COLLECTIONS.BUDGETS).select('*, piggybank:physical_piggybanks!inner(user_id)')
+                
+                // 5. BudgetAllocations (Verwendet IN-Filter)
+                supabase.from(COLLECTIONS.BUDGETS).select('*').in('piggybank_id', piggyBankIds)
             ]);
 
-            // Fehlerbehandlung
-            if (banksErr) throw banksErr;
-            if (goalsErr) throw goalsErr;
-            if (allocErr) throw allocErr;
-            if (transErr) throw transErr;
-            if (catsErr) throw catsErr;
-            if (ballocErr) throw ballocErr;
+            // Fehlerbehandlung für parallele Abfragen
+            if (goalsErr) throw { table: COLLECTIONS.GOALS, error: goalsErr };
+            if (allocErr) throw { table: COLLECTIONS.ALLOCATIONS, error: allocErr };
+            if (transErr) throw { table: COLLECTIONS.TRANSACTIONS, error: transErr };
+            if (catsErr) throw { table: COLLECTIONS.CATEGORIES, error: catsErr };
+            if (ballocErr) throw { table: COLLECTIONS.BUDGETS, error: ballocErr };
+            
+            console.log("SCHRITT 4.1: Promise.all erfolgreich abgeschlossen. Ergebnisse:");
+            console.log(" - SavingGoals:", (goals || []).length);
+            console.log(" - GoalAllocations:", (allocs || []).length);
+            console.log(" - Transactions:", (trans || []).length);
+            console.log(" - BudgetCategories:", (cats || []).length);
+            console.log(" - BudgetAllocations:", (ballocs || []).length);
 
             // Zuweisung der Daten
-            piggyBanks = banks || [];
             savingGoals = goals || [];
             transactions = trans || [];
             budgetCategories = cats || [];
-            
-            // Manuelle Filterung der Allocation-Daten (JOIN-Ergebnis bereinigen)
-            goalAllocations = (allocs || [])
-                .filter(a => a.piggybank.user_id === userId)
-                .map(a => {
-                    const { piggybank, ...rest } = a;
-                    return rest;
-                });
-                
-            budgetAllocations = (ballocs || [])
-                .filter(a => a.piggybank.user_id === userId)
-                 .map(a => {
-                    const { piggybank, ...rest } = a;
-                    return rest;
-                });
+            goalAllocations = allocs || [];
+            budgetAllocations = ballocs || [];
 
             updateUI();
+            console.log("SCHRITT 5: UI aktualisiert. fetchAllData beendet.");
+
         } catch (error) {
-            console.warn("Fetch data failed:", error);
-            showNotification('Fehler beim Laden der App-Daten. (Details in der Konsole)', 'error');
-            // Bei Fehler sollte die UI in einen stabilen Zustand gehen, z.B. Dashboard anzeigen
-            updateUI(); // Auch wenn Daten fehlen, versuchen wir die UI anzuzeigen.
+            console.error("!!! FEHLER !!! SCHRITT 99: Fehler beim Laden der App-Daten aufgetreten.");
+            if (error.table) {
+                console.error("Betroffene Tabelle:", error.table);
+                console.error("Detail:", error.error);
+                showNotification(`Fehler beim Laden von ${error.table} (Prüfe RLS!).`, 'error');
+            } else {
+                console.error("Detail:", error);
+                showNotification('Fehler beim Laden der App-Daten. (Details in der Konsole)', 'error');
+            }
+            // Stellt sicher, dass das Lade-Overlay ausgeblendet wird, selbst wenn ein Fehler auftritt.
+            updateUI(); 
         }
+        console.log("-----------------------------------------");
     };
 
     const handleRealtimePayload = async (payload, table) => {
