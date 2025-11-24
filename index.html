@@ -514,127 +514,80 @@
      * BITTE BEACHTEN: Dies ersetzt die komplette fetchAllData Funktion in Ihrer index.html.
      */
     const fetchAllData = async () => {
-        console.log("-----------------------------------------");
-        console.log("SCHRITT 1: fetchAllData gestartet.");
-        
-        // Überprüft, ob der Benutzer eingeloggt ist
-        if (!userId) {
-            console.log("SCHRITT 1.1: Abbruch, da keine Benutzer-ID verfügbar ist.");
-            return;
+    console.log("-----------------------------------------");
+    console.log("SCHRITT 1: fetchAllData gestartet.");
+    
+    if (!userId) return;
+
+    try {
+        console.log("SCHRITT 2: Banks laden...");
+        const { data: banks } = await supabase
+            .from(COLLECTIONS.BANKS)
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        piggyBanks = banks || [];
+
+        if (piggyBanks.length === 0) {
+            savingGoals = []; 
+            transactions = []; 
+            budgetCategories = [];
+            goalAllocations = []; 
+            budgetAllocations = [];
+            return; // ❌ updateUI NICHT aufrufen
         }
-        
-        // --- 1. Sparschweine zuerst holen (Sequenziell, da wichtig für Filterung) ---
-        try {
-            console.log("SCHRITT 2: Versuche, physical_piggybanks (Banks) für User:", userId, "abzurufen...");
-            const { data: banks, error: banksErr } = await supabase
-                .from(COLLECTIONS.BANKS)
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
 
-            if (banksErr) throw { table: COLLECTIONS.BANKS, error: banksErr }; // Fehler mit Tabellenname werfen
-            
-            piggyBanks = banks || [];
-            console.log("SCHRITT 2.1: physical_piggybanks erfolgreich geladen. Anzahl:", piggyBanks.length);
-            
-            // Wenn keine Sparschweine gefunden wurden, Ladevorgang beenden
-            if (piggyBanks.length === 0) {
-                console.log("SCHRITT 2.2: Keine Sparschweine gefunden. Beende Ladevorgang.");
-                savingGoals = []; transactions = []; budgetCategories = [];
-                goalAllocations = []; budgetAllocations = [];
-                updateUI();
-                console.log("SCHRITT 5: UI aktualisiert. fetchAllData beendet.");
-                return;
-            }
+        const piggyBankIds = piggyBanks.map(b => b.id);
 
-            // IDs der gefundenen Sparschweine für die IN-Filterung der Allocation-Tabellen vorbereiten
-            const piggyBankIds = piggyBanks.map(b => b.id);
-            console.log("SCHRITT 3: Piggybank-IDs für IN-Filter vorbereitet:", piggyBankIds);
+        const [
+            { data: goals },
+            { data: allocs },
+            { data: trans },
+            { data: cats },
+            { data: ballocs }
+        ] = await Promise.all([
+            supabase.from(COLLECTIONS.GOALS).select('*').eq('user_id', userId),
+            supabase.from(COLLECTIONS.ALLOCATIONS).select('*').in('piggybank_id', piggyBankIds),
+            supabase.from(COLLECTIONS.TRANSACTIONS).select('*').eq('user_id', userId),
+            supabase.from(COLLECTIONS.CATEGORIES).select('*').eq('user_id', userId),
+            supabase.from(COLLECTIONS.BUDGETS).select('*').in('piggybank_id', piggyBankIds)
+        ]);
 
-            // --- 2. Restliche Daten parallel holen (Jetzt mit IN-Filter) ---
-            console.log("SCHRITT 4: Starte Promise.all, um restliche 5 Tabellen parallel abzufragen...");
-            
-            // Alle Abfragen, die user_id filtern, oder die Allocation-Tabellen, die piggybank_id filtern.
-            const [
-                { data: goals, error: goalsErr },
-                { data: allocs, error: allocErr },
-                { data: trans, error: transErr },
-                { data: cats, error: catsErr },
-                { data: ballocs, error: ballocErr }
-            ] = await Promise.all([
-                // 1. SavingGoals
-                supabase.from(COLLECTIONS.GOALS).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-                
-                // 2. GoalAllocations (Verwendet IN-Filter)
-                supabase.from(COLLECTIONS.ALLOCATIONS).select('*').in('piggybank_id', piggyBankIds),
-                
-                // 3. Transactions
-                supabase.from(COLLECTIONS.TRANSACTIONS).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-                
-                // 4. BudgetCategories
-                supabase.from(COLLECTIONS.CATEGORIES).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-                
-                // 5. BudgetAllocations (Verwendet IN-Filter)
-                supabase.from(COLLECTIONS.BUDGETS).select('*').in('piggybank_id', piggyBankIds)
-            ]);
+        savingGoals = goals || [];
+        transactions = trans || [];
+        budgetCategories = cats || [];
+        goalAllocations = allocs || [];
+        budgetAllocations = ballocs || [];
 
-            // Fehlerbehandlung für parallele Abfragen
-            if (goalsErr) throw { table: COLLECTIONS.GOALS, error: goalsErr };
-            if (allocErr) throw { table: COLLECTIONS.ALLOCATIONS, error: allocErr };
-            if (transErr) throw { table: COLLECTIONS.TRANSACTIONS, error: transErr };
-            if (catsErr) throw { table: COLLECTIONS.CATEGORIES, error: catsErr };
-            if (ballocErr) throw { table: COLLECTIONS.BUDGETS, error: ballocErr };
-            
-            console.log("SCHRITT 4.1: Promise.all erfolgreich abgeschlossen. Ergebnisse:");
-            console.log(" - SavingGoals:", (goals || []).length);
-            console.log(" - GoalAllocations:", (allocs || []).length);
-            console.log(" - Transactions:", (trans || []).length);
-            console.log(" - BudgetCategories:", (cats || []).length);
-            console.log(" - BudgetAllocations:", (ballocs || []).length);
+        // ❌ KEIN updateUI hier!
+    
+    } catch (error) {
+        console.error("fetchAllData error", error);
+        // ❌ KEIN updateUI hier!
+        showNotification("Fehler beim Laden", "error");
+    }
+};
 
-            // Zuweisung der Daten
-            savingGoals = goals || [];
-            transactions = trans || [];
-            budgetCategories = cats || [];
-            goalAllocations = allocs || [];
-            budgetAllocations = ballocs || [];
 
-            updateUI();
-            console.log("SCHRITT 5: UI aktualisiert. fetchAllData beendet.");
+    let isRealtimeRefreshing = false;
 
-        } catch (error) {
-            console.error("!!! FEHLER !!! SCHRITT 99: Fehler beim Laden der App-Daten aufgetreten.");
-            if (error.table) {
-                console.error("Betroffene Tabelle:", error.table);
-                console.error("Detail:", error.error);
-                showNotification(`Fehler beim Laden von ${error.table} (Prüfe RLS!).`, 'error');
-            } else {
-                console.error("Detail:", error);
-                showNotification('Fehler beim Laden der App-Daten. (Details in der Konsole)', 'error');
-            }
-            // Stellt sicher, dass die UI den Fehlerzustand behandelt (z.B. indem sie versucht, die aktuelle Ansicht zu rendern).
-            updateUI(); 
-        }
-        console.log("-----------------------------------------");
-    };
+const handleRealtimePayload = async (payload, table) => {
+    console.log("⚡ REALTIME EVENT", table, payload);
 
-    const handleRealtimePayload = async (payload, table) => {
+    // Verhindert, dass mehrere Events gleichzeitig eine neue Ladung starten
+    if (isRealtimeRefreshing) return;
+    isRealtimeRefreshing = true;
 
-        // 📌 Debug: WICHTIG!
-        console.log("⚡ REALTIME EVENT", table, payload);
+    // Daten NUR neu laden, aber KEINE Listener neu starten
+    await fetchAllData();
 
-        // 🛑 KRITISCHER FIX: Listener stoppen, Daten aktualisieren, Listener neu starten
-        // Dadurch wird die Auslösung eines Realtime-Events durch die eigene fetchAllData-Funktion verhindert.
-        stopSupabaseListeners(); 
-        
-        // Bei jedem Realtime-Event werden ALLE Daten neu abgerufen, um die Konsistenz zu gewährleisten.
-        await fetchAllData();
-        
-        // Listener neu starten
-        await startSupabaseListeners();
+    // Kurze Pause, damit Listener nicht erneut feuern
+    setTimeout(() => {
+        isRealtimeRefreshing = false;
+    }, 300);
+};
 
-        // updateUI() wird bereits am Ende von fetchAllData aufgerufen
-    };
 
 
     // ------------------------------------------------
