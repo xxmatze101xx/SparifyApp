@@ -324,29 +324,36 @@
             // 🛑 KRITISCHER FIX: Abfangen des TypeError: Cannot read properties of null
             if (!loginScreen || !appScreen || !loadingOverlay) {
                  console.error("KRITISCHER FEHLER: UI-Elemente (auth-view, main-app-view oder loading-overlay) wurden nicht gefunden.");
-                 return; // Abbruch der Funktion, um den TypeError zu verhindern
+                 return; 
             }
 
             if (event === 'SIGNED_IN' && session) {
                 // Erfolgreich eingeloggt
                 userId = session.user.id;
-                if (userIdDisplay) userIdDisplay.textContent = userId; // User ID anzeigen
+                if (userIdDisplay) userIdDisplay.textContent = userId;
 
                 // !!! HIER WURDE ensureProfileRow(userId) ENTFERNT !!!
                 
-                // Nun direkt zur Dateninitialisierung übergehen
+                // 1. Alle Daten einmal laden
                 await fetchAllData(); 
                 
-                // UI-Umschaltung
+                // 2. Realtime Listener starten (WICHTIGER NEUER SCHRITT)
+                await startSupabaseListeners(); 
+
+                // 3. UI-Umschaltung
                 loginScreen.classList.add('hidden');
                 appScreen.classList.remove('hidden');
                 loadingOverlay.classList.add('hidden'); // Overlay ausblenden
-                console.log("SIGNED_IN: UI auf App-Ansicht umgeschaltet.");
+                console.log("SIGNED_IN: App-Ansicht bereitgestellt.");
 
             } else if (event === 'SIGNED_OUT' || !session) {
                 // Ausgeloggt oder keine Session
                 userId = null;
-                if (userIdDisplay) userIdDisplay.textContent = 'Ausgeloggt'; // User ID anzeigen
+                if (userIdDisplay) userIdDisplay.textContent = 'Ausgeloggt';
+                
+                // 🛑 WICHTIG: Realtime Listener stoppen und Daten löschen
+                stopSupabaseListeners(); 
+                
                 appScreen.classList.add('hidden');
                 loginScreen.classList.remove('hidden');
                 // Lade-Overlay muss jetzt ausgeblendet werden
@@ -449,10 +456,9 @@
     const startSupabaseListeners = async () => {
         if (!userId) return;
 
-        // KORRIGIERT: fetchAllData() wird NICHT erneut aufgerufen,
-        // da es bereits vom Auth-Handler (setupSupabaseAuth) beim Einloggen erfolgt ist.
-        // await fetchAllData(); // ENTFERNT, um Endlosschleife/Blockierung zu beheben.
-
+        // 🛑 WICHTIGER FIX: Vorherige Subscriptions stoppen, um Duplikate zu vermeiden
+        stopSupabaseListeners(); 
+        
         // 150ms warten, verhindert App-Freeze nach Resume (kann beibehalten werden)
         await new Promise(res => setTimeout(res, 150));
 
@@ -614,13 +620,21 @@
 
     const handleRealtimePayload = async (payload, table) => {
 
-    // 📌 Debug: WICHTIG!
-    console.log("⚡ REALTIME EVENT", table, payload);
+        // 📌 Debug: WICHTIG!
+        console.log("⚡ REALTIME EVENT", table, payload);
 
-    // Bei jedem Realtime-Event werden ALLE Daten neu abgerufen, um die Konsistenz zu gewährleisten.
-    await fetchAllData();
-    updateUI();
-};
+        // 🛑 KRITISCHER FIX: Listener stoppen, Daten aktualisieren, Listener neu starten
+        // Dadurch wird die Auslösung eines Realtime-Events durch die eigene fetchAllData-Funktion verhindert.
+        stopSupabaseListeners(); 
+        
+        // Bei jedem Realtime-Event werden ALLE Daten neu abgerufen, um die Konsistenz zu gewährleisten.
+        await fetchAllData();
+        
+        // Listener neu starten
+        await startSupabaseListeners();
+
+        // updateUI() wird bereits am Ende von fetchAllData aufgerufen
+    };
 
 
     // ------------------------------------------------
