@@ -2,56 +2,65 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0,
+          maximum-scale=1.0, user-scalable=no" />
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>Meine Sparwelt - Login & App</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Supabase Client -->
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-        // Exponiere Supabase Client global
-        const SUPABASE_URL = 'https://kfonoowhnbvliggpwzxc.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmb25vb3dobmJ2bGlnZ3B3enhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MzQ1MDksImV4cCI6MjA3OTUxMDUwOX0.-To4sVg7o5Uxx3jNpAcWmurC2lGPVPmj-Em1wW_eNyk';
-
-        window.supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: {
-                persistSession: true,
-                detectSessionInUrl: true,
-            }
-        });
-
-        // Expose for non-module inline scripts
-        window.SUPABASE_URL = SUPABASE_URL;
-        window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
-    </script>
+    <style>
+        input, textarea, select, button {
+            font-size: 16px !important;
+        }
+    </style>
 
     <script>
-        // Setzt die Tailwind-Konfiguration
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'primary-blue': '#4F46E5', // Hauptfarbe: Indigo
-                        'secondary-green': '#10B981', // Akzentfarbe: Emerald
-                        'accent-pink': '#EC4899', // Warnfarbe: Pink
-                        'bg-light': '#F3F4F6',
-                        'card-light': '#FFFFFF',
+                        "primary-blue": "#4F46E5",
+                        "secondary-green": "#10B981",
+                        "accent-pink": "#EC4899",
+                        "bg-light": "#F3F4F6",
+                        "card-light": "#FFFFFF",
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ["Inter", "sans-serif"],
                     },
                 }
             }
         };
     </script>
 
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+        const SUPABASE_URL =
+            "https://kfonoowhnbvliggpwzxc.supabase.co";
+
+        const SUPABASE_ANON_KEY =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmb25vb3dobmJ2bGlnZ3B3enhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MzQ1MDksImV4cCI6MjA3OTUxMDUwOX0.-To4sVg7o5Uxx3jNpAcWmurC2lGPVPmj-Em1wW_eNyk";
+
+        window.supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: true,
+                detectSessionInUrl: true
+            }
+        });
+
+        window.SUPABASE_URL = SUPABASE_URL;
+        window.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+    </script>
+
     <style>
-        /* Grundlegendes Styling für das Handyformat */
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: "Inter", sans-serif;
             background-color: #F3F4F6;
             display: flex;
             justify-content: center;
@@ -59,6 +68,7 @@
             min-height: 100vh;
             padding-bottom: 80px;
         }
+
         #app-container {
             width: 100%;
             max-width: 500px;
@@ -68,7 +78,6 @@
             position: relative;
         }
 
-        /* Responsive Anpassung für Mobile */
         @media (max-width: 500px) {
             #app-container {
                 max-width: 100%;
@@ -79,7 +88,6 @@
             }
         }
 
-        /* Modals & Loader */
         .loader {
             border: 4px solid rgba(255, 255, 255, 0.3);
             border-top: 4px solid #fff;
@@ -89,10 +97,7 @@
             animation: spin 1s linear infinite;
             display: none;
         }
-
-        .loader.active {
-            display: block;
-        }
+        .loader.active { display: block; }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -102,80 +107,116 @@
         .nav-item {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 8px;
-            color: #6B7280; /* Gray-500 */
-            transition: color 0.2s;
-            cursor: pointer;
+            align-items:center;
+            padding:8px;
+            color:#6B7280;
+            transition:color .2s;
+            cursor:pointer;
         }
-
-        .nav-item.active {
-            color: #4F46E5; /* Primary-blue */
-        }
-        .nav-item:hover {
-            color: #4F46E5;
-        }
-        .nav-item svg {
-            transition: transform 0.2s;
-        }
-        .nav-item.active svg {
-            transform: scale(1.1);
-        }
+        .nav-item.active { color:#4F46E5; }
+        .nav-item:hover { color:#4F46E5; }
+        .nav-item svg { transition:transform .2s; }
+        .nav-item.active svg { transform:scale(1.1); }
     </style>
 </head>
-<body>
 
+<body>
     <div id="app-container">
 
-        <div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-50 transition-opacity duration-300 hidden">
+        <div id="loading-overlay"
+             class="fixed inset-0 bg-gray-900 bg-opacity-90 flex flex-col justify-center items-center z-50 transition-opacity duration-300">
             <div class="loader active border-primary-blue border-t-white border-2 w-10 h-10"></div>
             <p class="mt-4 text-white text-lg">Lade App...</p>
         </div>
 
-        <div id="auth-view" class="p-8 flex flex-col justify-center items-center min-h-screen bg-bg-light">
+        <div id="auth-view" class="p-8 flex flex-col justify-center items-center min-h-screen bg-bg-light hidden">
             <h1 class="text-4xl font-extrabold text-primary-blue mb-2">Sparwelt</h1>
             <p class="text-gray-500 mb-8">Einloggen oder Registrieren</p>
 
             <div class="w-full max-w-sm bg-white p-6 rounded-xl shadow-2xl">
                 <form id="auth-form" class="space-y-4">
-                    <input type="email" id="auth-email" placeholder="E-Mail" required class="w-full p-3 rounded-lg border border-gray-300 focus:ring-primary-blue focus:border-primary-blue">
-                    <input type="password" id="auth-password" placeholder="Passwort" required class="w-full p-3 rounded-lg border border-gray-300 focus:ring-primary-blue focus:border-primary-blue">
+                    <input type="email" id="auth-email" placeholder="E-Mail" required
+                           class="w-full p-3 rounded-lg border border-gray-300 focus:ring-primary-blue focus:border-primary-blue">
 
-                    <button type="submit" id="auth-submit-btn" class="w-full bg-primary-blue text-white py-3 rounded-xl font-bold hover:bg-indigo-600 transition flex items-center justify-center">
+                    <input type="password" id="auth-password" placeholder="Passwort" required
+                           class="w-full p-3 rounded-lg border border-gray-300 focus:ring-primary-blue focus:border-primary-blue">
+
+                    <button type="submit" id="auth-submit-btn"
+                            class="w-full bg-primary-blue text-white py-3 rounded-xl font-bold hover:bg-indigo-600 transition flex items-center justify-center">
                         <span id="auth-btn-text">Anmelden</span>
                         <div class="loader ml-2" id="auth-loader"></div>
                     </button>
 
                     <p id="auth-message" class="text-sm text-red-500 text-center"></p>
                 </form>
+
                 <div class="mt-4 text-center">
-                    <button id="toggle-auth-mode" class="text-sm text-primary-blue hover:underline transition">
+                    <button id="toggle-auth-mode"
+                            class="text-sm text-primary-blue hover:underline transition">
                         Noch kein Konto? Hier registrieren.
                     </button>
-                    <p class="text-xs text-gray-400 mt-4 break-words">User ID: <span id="display-user-id">Wird geladen...</span></p>
+
+                    <p class="text-xs text-gray-400 mt-4 break-words">
+                        User ID:
+                        <span id="display-user-id">Wird geladen...</span>
+                    </p>
                 </div>
             </div>
         </div>
 
         <div id="main-app-view" class="min-h-screen hidden">
-            <header id="app-header" class="bg-primary-blue text-white p-4 shadow-lg sticky top-0 z-10 flex justify-between items-center transition-all duration-300">
-                <button onclick="goBack()" id="back-button" class="text-white hidden transition-all duration-300 transform hover:scale-110">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <header id="app-header"
+                    class="bg-primary-blue text-white p-4 shadow-lg sticky top-0 z-10 flex justify-between items-center transition-all duration-300">
+
+                <button onclick="goBack()" id="back-button"
+                        class="text-white hidden transition-all duration-300 transform hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
                 </button>
-                <h1 id="header-title" class="text-xl font-bold transition-all duration-300 mx-auto">Dashboard</h1>
-                <button onclick="handleLogout()" class="text-white text-sm hover:opacity-80 transition flex items-center">
-                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h5a1 1 0 000-2H4V4h4a1 1 0 100-2H3zm13.36 8.36a1 1 0 00-1.41-1.41L12 12.59l-2.95-2.95a1 1 0 00-1.41 1.41l3.66 3.66a1 1 0 001.41 0l4.36-4.36z" clip-rule="evenodd" /></svg>
-                     Logout
-                 </button>
+
+                <h1 id="header-title"
+                    class="text-xl font-bold transition-all duration-300 mx-auto">Dashboard</h1>
+
+                <button onclick="handleLogout()"
+                        class="text-white text-sm hover:opacity-80 transition flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                              d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h5a1 1 0 000-2H4V4h4a1 1 0 100-2H3zm13.36 8.36a1 1 0 00-1.41-1.41L12 12.59l-2.95-2.95a1 1
+                                   0 00-1.41 1.41l3.66 3.66a1 1 0 001.41 0l4.36-4.36z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                    Logout
+                </button>
             </header>
 
             <main id="content" class="p-4 pb-24"></main>
 
-            <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 max-w-[500px] mx-auto bg-white border-t border-gray-200 shadow-lg z-20 flex justify-around">
-                <div class="nav-item active" data-view="dashboard" onclick="navigateTo('dashboard', null)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3 .895-3 2 1.343 2 3 2m0-8V4m0 12v4m-6-2h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            <nav id="bottom-nav"
+                 class="fixed bottom-0 left-0 right-0 max-w-[500px] mx-auto
+                 bg-white border-t border-gray-200 shadow-lg z-20 flex justify-around">
+
+                <div class="nav-item active"
+                     data-view="dashboard"
+                     onclick="navigateTo('dashboard', null)">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-7 w-7" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3
+                                 .895-3 2 1.343 2 3 2m0-8V4m0
+                                 12v4m-6-2h12a2 2 0 002-2V6a2 2
+                                 0 00-2-2H6a2 2 0 00-2 2v10a2
+                                 2 0 002 2z"/>
+                    </svg>
                     <span class="text-xs mt-1">Sparschweine</span>
                 </div>
             </nav>
@@ -183,1172 +224,1146 @@
             <div id="modal-container"></div>
         </div>
     </div>
+<script type="module">
+    // Nutze den globalen Supabase-Client (wurde in Teil 1 gesetzt)
+    const supabase = window.supabaseClient;
 
-    <!-- Supabase-powered application logic (ersetzt Firebase) -->
-    <script type="module">
-        // Zugriff auf den globalen Supabase-Client
-        const supabase = window.supabaseClient;
+    // ------------------------------------------------
+    // STATE
+    // ------------------------------------------------
+    let userId = null; // Wird auf die auth.user.id gesetzt
+    let isAuthReady = false;
+    let currentView = 'dashboard';
+    let selectedPiggyBankId = null;
 
-        // ------------------------------------------------
-        // STATE
-        // ------------------------------------------------
-        let userId = null; // Wird auf die auth.user.id gesetzt
-        let isAuthReady = false;
-        let currentView = 'dashboard';
-        let selectedPiggyBankId = null;
+    let piggyBanks = [];
+    let savingGoals = [];
+    let goalAllocations = [];
+    let transactions = [];
+    let budgetCategories = [];
+    let budgetAllocations = [];
 
-        let piggyBanks = [];
-        let savingGoals = [];
-        let goalAllocations = [];
-        let transactions = [];
-        let budgetCategories = [];
-        let budgetAllocations = [];
+    // Subscriptions (Supabase channel objects / subscriptions)
+    let subscriptions = [];
 
-        // Subscriptions (Supabase channel objects / subscriptions)
-        let subscriptions = [];
+    const COLLECTIONS = {
+        BANKS: 'physical_piggybanks',
+        GOALS: 'saving_goals',
+        ALLOCATIONS: 'piggybank_saving_goals',
+        TRANSACTIONS: 'transactions',
+        CATEGORIES: 'budget_categories',
+        BUDGETS: 'piggybank_budget_allocations',
+        USERS: 'users'
+    };
 
-        const COLLECTIONS = {
-            BANKS: 'physical_piggybanks',
-            GOALS: 'saving_goals',
-            ALLOCATIONS: 'piggybank_saving_goals',
-            TRANSACTIONS: 'transactions',
-            CATEGORIES: 'budget_categories',
-            BUDGETS: 'piggybank_budget_allocations',
-            USERS: 'users'
-        };
+    // ------------------------------------------------
+    // HELPERS
+    // ------------------------------------------------
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount || 0);
+    };
 
-        // ------------------------------------------------
-        // HELPERS
-        // ------------------------------------------------
-        const formatCurrency = (amount) => {
-            return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount || 0);
-        };
+    const formatTimestamp = (timestamp) => {
+        if (!timestamp) return 'Unbekanntes Datum';
+        try {
+            const d = new Date(timestamp);
+            if (isNaN(d)) return 'Unbekanntes Datum';
+            return d.toLocaleDateString('de-DE');
+        } catch {
+            return 'Unbekanntes Datum';
+        }
+    };
 
-        const formatTimestamp = (timestamp) => {
-            if (!timestamp) return 'Unbekanntes Datum';
-            // Supabase liefert ISO-Strings; Date konvertieren
-            try {
-                const d = new Date(timestamp);
-                if (isNaN(d)) return 'Unbekanntes Datum';
-                return d.toLocaleDateString('de-DE');
-            } catch {
-                return 'Unbekanntes Datum';
+    const getPiggyBank = (id) => piggyBanks.find(b => b.id === id);
+    const getBankTransactions = (id) => transactions.filter(t => t.piggybank_id === id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    const getBankGoals = (id) => {
+        const bankAllocation = goalAllocations.filter(a => a.piggybank_id === id);
+        return bankAllocation.map(allocation => {
+            const goal = savingGoals.find(g => g.id === allocation.savinggoal_id);
+            if (goal) {
+                return {
+                    ...goal,
+                    allocation_percent: allocation.allocation_percent,
+                };
             }
-        };
+            return null;
+        }).filter(g => g !== null);
+    };
+    const getBankBudgets = (id) => {
+        const bankAlloc = budgetAllocations.filter(a => a.piggybank_id === id);
+        return bankAlloc.map(allocation => {
+            const category = budgetCategories.find(c => c.id === allocation.category_id);
+            if (category) {
+                // Simuliere usage wie Demo
+                const currentUsage = (category.monthly_limit || 0) * (Math.random() * 0.8 + 0.1);
+                const remaining = (category.monthly_limit || 0) - currentUsage;
+                return {
+                    ...category,
+                    ...allocation,
+                    current_usage: parseFloat(currentUsage.toFixed(2)),
+                    remaining_budget: parseFloat(remaining.toFixed(2)),
+                };
+            }
+            return null;
+        }).filter(c => c !== null);
+    };
 
-        const getPiggyBank = (id) => piggyBanks.find(b => b.id === id);
-        const getBankTransactions = (id) => transactions.filter(t => t.piggybank_id === id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-        const getBankGoals = (id) => {
-            const bankAllocation = goalAllocations.filter(a => a.piggybank_id === id);
-            return bankAllocation.map(allocation => {
-                const goal = savingGoals.find(g => g.id === allocation.savinggoal_id);
-                if (goal) {
-                    return {
-                        ...goal,
-                        allocation_percent: allocation.allocation_percent,
-                    };
-                }
-                return null;
-            }).filter(g => g !== null);
-        };
-        const getBankBudgets = (id) => {
-            const bankAlloc = budgetAllocations.filter(a => a.piggybank_id === id);
-            return bankAlloc.map(allocation => {
-                const category = budgetCategories.find(c => c.id === allocation.category_id);
-                if (category) {
-                    // Simuliere usage wie zuvor (Demo)
-                    const currentUsage = (category.monthly_limit || 0) * (Math.random() * 0.8 + 0.1);
-                    const remaining = (category.monthly_limit || 0) - currentUsage;
-                    return {
-                        ...category,
-                        ...allocation,
-                        current_usage: parseFloat(currentUsage.toFixed(2)),
-                        remaining_budget: parseFloat(remaining.toFixed(2)),
-                    };
-                }
-                return null;
-            }).filter(c => c !== null);
-        };
+    // ------------------------------------------------
+    // AUTH & INITIALIZATION
+    // ------------------------------------------------
+    const setupSupabaseAuth = () => {
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const authView = document.getElementById('auth-view');
+        const mainAppView = document.getElementById('main-app-view');
+        const userIdDisplay = document.getElementById('display-user-id');
 
-        // ------------------------------------------------
-        // AUTH & INITIALIZATION
-        // ------------------------------------------------
-        const setupSupabaseAuth = () => {
-            // Auth state listener
-            supabase.auth.onAuthStateChange(async (event, session) => {
-                console.log('Auth event', event);
-                const loadingOverlay = document.getElementById('loading-overlay');
-                loadingOverlay.classList.add('hidden');
+        // Auth state listener
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('Auth event', event);
+            isAuthReady = true;
 
-                if (session && session.user) {
-                    userId = session.user.id; // UUID from supabase auth
-                    isAuthReady = true;
-                    document.getElementById('display-user-id').textContent = userId;
-                    document.getElementById('auth-view').classList.add('hidden');
-                    document.getElementById('main-app-view').classList.remove('hidden');
+            if (session && session.user) {
+                try {
+                    userId = session.user.id;
 
-                    // Ensure there is a profile row in public.users with id = auth.user.id
+                    // WICHTIG: alte Listener entfernen bevor neue starten
+                    stopSupabaseListeners();
+
+                    // Prüfe und erstelle Benutzerprofil in der Datenbank
                     await ensureProfileRow(session.user);
 
-                    // Start realtime listeners / initial fetch
-                    startSupabaseListeners();
+                    // Startet Realtime + lädt Daten (mit await)
+                    await startSupabaseListeners();
 
-                } else {
-                    userId = null;
-                    isAuthReady = true;
-                    document.getElementById('display-user-id').textContent = 'ANONYM/NICHT EINGELOGGT';
-                    document.getElementById('auth-view').classList.remove('hidden');
-                    document.getElementById('main-app-view').classList.add('hidden');
+                    // UI umschalten
+                    authView.classList.add('hidden');
+                    mainAppView.classList.remove('hidden');
+                    userIdDisplay.textContent = userId;
 
-                    stopSupabaseListeners();
+                } catch (error) {
+                    // Falls beim Laden der Daten (z.B. durch RLS-Fehler) ein kritischer Fehler auftritt
+                    console.error("Kritischer Fehler beim Laden der Daten nach dem Login:", error);
+                    showNotification('Kritischer Fehler beim Laden der Daten. Bitte prüfen Sie die RLS-Regeln.', 'error');
+                    
+                    // Notfall-UI-Umschaltung
+                    authView.classList.add('hidden');
+                    mainAppView.classList.remove('hidden');
+                } finally {
+                    // GARANTIERT: Das Lade-Overlay verschwindet immer, auch bei Fehlern.
+                    loadingOverlay.classList.add('hidden');
+                }
+
+            } else {
+                // session null -> logged out
+                userId = null;
+                
+                stopSupabaseListeners();
+
+                userIdDisplay.textContent = 'ANONYM/NICHT EINGELOGGT';
+                authView.classList.remove('hidden');
+                mainAppView.classList.add('hidden');
+                
+                // Ladevorgang beenden, um Login-Formular anzuzeigen
+                loadingOverlay.classList.add('hidden');
+            }
+        });
+    };
+
+    // Ensure profile row exists in public.users with id = auth.user.id
+    const ensureProfileRow = async (authUser) => {
+        try {
+            const { data: existing, error: selError } = await supabase
+                .from(COLLECTIONS.USERS)
+                .select('id,email')
+                .eq('id', authUser.id)
+                .limit(1);
+
+            if (selError) throw selError;
+
+            if (!existing || existing.length === 0) {
+                const { error: insertError } = await supabase
+                    .from(COLLECTIONS.USERS)
+                    .insert({ id: authUser.id, email: authUser.email || '' });
+                if (insertError) console.warn('Could not create profile row:', insertError.message);
+            }
+        } catch (err) {
+            console.error('ensureProfileRow error:', err);
+            throw err; // Werfe den Fehler weiter, damit die try/finally-Logik in onAuthStateChange ihn erfasst.
+        }
+    };
+
+    // Robustes Logout: signOut, clear storage, UI update
+    const handleLogout = async () => {
+        try {
+            // Erstens: signOut bei Supabase
+            await supabase.auth.signOut();
+            showNotification('Erfolgreich abgemeldet.', 'success');
+        } catch (error) {
+            console.error('Logout error:', error);
+            showNotification('Fehler beim Abmelden.', 'error');
+        }
+    };
+
+    // Toggle between login/register
+    let isRegisterMode = false;
+    const toggleAuthMode = () => {
+        isRegisterMode = !isRegisterMode;
+        const submitBtnText = document.getElementById('auth-btn-text');
+        const toggleBtn = document.getElementById('toggle-auth-mode');
+
+        if (isRegisterMode) {
+            submitBtnText.textContent = 'Registrieren';
+            toggleBtn.textContent = 'Bereits ein Konto? Hier anmelden.';
+        } else {
+            submitBtnText.textContent = 'Anmelden';
+            toggleBtn.textContent = 'Noch kein Konto? Hier registrieren.';
+        }
+        document.getElementById('auth-message').textContent = '';
+    };
+
+    const handleAuthSubmit = async (event) => {
+        event.preventDefault();
+        const email = document.getElementById('auth-email').value;
+        const password = document.getElementById('auth-password').value;
+        const messageEl = document.getElementById('auth-message');
+        const loader = document.getElementById('auth-loader');
+        const submitBtn = document.getElementById('auth-submit-btn');
+
+        messageEl.textContent = '';
+        loader.classList.add('active');
+        submitBtn.disabled = true;
+
+        try {
+            if (isRegisterMode) {
+                const { data, error } = await supabase.auth.signUp({ email, password });
+                if (error) throw error;
+                showNotification('Registrierung abgeschlossen. Bitte überprüfe ggf. dein Postfach.', 'success');
+            } else {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                // Die weitere Initialisierung und Navigation erfolgt über den onAuthStateChange-Listener
+            }
+        } catch (error) {
+            console.error('Auth Error:', error);
+            let msg = 'Ein unbekannter Fehler ist aufgetreten.';
+            if (error.message?.toLowerCase().includes('invalid')) msg = 'Ungültige Anmeldedaten.';
+            if (error.message?.toLowerCase().includes('user')) msg = 'E-Mail oder Passwort ist falsch.';
+            if (error.message?.includes('Email rate limit exceeded')) msg = 'Zu viele Registrierungsversuche. Bitte warten Sie eine Weile.';
+            messageEl.textContent = msg;
+        } finally {
+            loader.classList.remove('active');
+            submitBtn.disabled = false;
+        }
+    };
+
+    // ------------------------------------------------
+    // Realtime & DATA FETCH
+    // ------------------------------------------------
+    const stopSupabaseListeners = () => {
+        try {
+            subscriptions.forEach(sub => {
+                if (sub && typeof supabase.removeChannel === 'function') {
+                    supabase.removeChannel(sub);
+                } else if (sub && typeof sub.unsubscribe === 'function') {
+                    sub.unsubscribe();
                 }
             });
+        } catch (e) {
+            console.warn('Error unsubscribing:', e);
+        }
+        subscriptions = [];
 
-            // Try to restore session automatically (supabase client does this by default on init)
-            // Show login view if not authenticated after a short timeout
-            setTimeout(() => {
-                if (!isAuthReady) {
-                    document.getElementById('loading-overlay').classList.add('hidden');
-                    document.getElementById('auth-view').classList.remove('hidden');
-                }
-            }, 3000); // 3s fallback
-        };
+        piggyBanks = [];
+        savingGoals = [];
+        goalAllocations = [];
+        transactions = [];
+        budgetCategories = [];
+        budgetAllocations = [];
+    };
 
-        // Ensure profile row exists in public.users with id = auth.user.id
-        // Note: Your public.users table requires a 'password' NOT NULL column.
-        // We'll insert a placeholder empty string for password so the row can be created.
-        const ensureProfileRow = async (authUser) => {
-            try {
-                const { data: existing, error: selError } = await supabase
-                    .from(COLLECTIONS.USERS)
-                    .select('id,email')
-                    .eq('id', authUser.id)
-                    .limit(1);
+    const startSupabaseListeners = async () => {
+        if (!userId) return;
 
-                if (selError) throw selError;
+        // Fetchen der initialen Daten
+        await fetchAllData();
 
-                if (!existing || existing.length === 0) {
-                    const profile = {
-                        id: authUser.id,
-                        email: authUser.email || '',
-                        password: '', // placeholder because table requires NOT NULL
-                    };
-                    const { error: insertError } = await supabase
-                        .from(COLLECTIONS.USERS)
-                        .insert(profile);
-                    if (insertError) console.warn('Could not create profile row:', insertError.message);
-                }
-            } catch (err) {
-                console.error('ensureProfileRow error:', err);
-            }
-        };
+        // 150ms warten, verhindert App-Freeze nach Resume (kann beibehalten werden)
+        await new Promise(res => setTimeout(res, 150));
 
-        const handleLogout = async () => {
-            try {
-                await supabase.auth.signOut();
-                showNotification('Erfolgreich abgemeldet.', 'success');
-            } catch (error) {
-                console.error('Logout error:', error);
-                showNotification('Fehler beim Abmelden.', 'error');
-            }
-        };
+        // Subscribe to realtime changes for each table
+        
+        // HINWEIS: Realtime-Filter auf RLS-fähigen Tabellen sind gut, aber die ALLOCATIONS-Filter sind unvollständig.
+        // Das wird aber durch fetchAllData kompensiert.
 
-        // Toggle between login/register
-        let isRegisterMode = false;
-        const toggleAuthMode = () => {
-            isRegisterMode = !isRegisterMode;
-            const submitBtnText = document.getElementById('auth-btn-text');
-            const toggleBtn = document.getElementById('toggle-auth-mode');
+        const banksSub = supabase.channel(`public:physical_piggybanks:user_id=eq.${userId}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.BANKS, filter: `user_id=eq.${userId}` }, payload => {
+                handleRealtimePayload(payload, COLLECTIONS.BANKS);
+            }).subscribe();
+        subscriptions.push(banksSub);
 
-            if (isRegisterMode) {
-                submitBtnText.textContent = 'Registrieren';
-                toggleBtn.textContent = 'Bereits ein Konto? Hier anmelden.';
-            } else {
-                submitBtnText.textContent = 'Anmelden';
-                toggleBtn.textContent = 'Noch kein Konto? Hier registrieren.';
-            }
-            document.getElementById('auth-message').textContent = '';
-        };
+        const goalsSub = supabase.channel(`public:saving_goals:user_id=eq.${userId}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.GOALS, filter: `user_id=eq.${userId}` }, payload => {
+                handleRealtimePayload(payload, COLLECTIONS.GOALS);
+            }).subscribe();
+        subscriptions.push(goalsSub);
 
-        const handleAuthSubmit = async (event) => {
-            event.preventDefault();
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const messageEl = document.getElementById('auth-message');
-            const loader = document.getElementById('auth-loader');
-            const submitBtn = document.getElementById('auth-submit-btn');
+        // Allocations: Filtern auf * ist riskant, aber der Realtime-Filter muss oft breiter sein.
+        // Der korrekte Realtime-Filter wäre, wenn RLS auf dieser Tabelle greift.
+        const allocSub = supabase.channel(`public:piggybank_saving_goals:piggybank_id=eq.*`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.ALLOCATIONS }, payload => {
+                handleRealtimePayload(payload, COLLECTIONS.ALLOCATIONS);
+            }).subscribe();
+        subscriptions.push(allocSub);
 
-            messageEl.textContent = '';
-            loader.classList.add('active');
-            submitBtn.disabled = true;
+        // Transaktionen
+        const transSub = supabase.channel(`public:transactions:user_id=eq.${userId}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.TRANSACTIONS, filter: `user_id=eq.${userId}` }, payload => {
+                handleRealtimePayload(payload, COLLECTIONS.TRANSACTIONS);
+            }).subscribe();
+        subscriptions.push(transSub);
 
-            try {
-                if (isRegisterMode) {
-                    // Sign up via Supabase Auth
-                    const { data, error } = await supabase.auth.signUp({ email, password });
-                    if (error) throw error;
 
-                    // If immediate session exists, ensure profile row will be created by auth listener.
-                    showNotification('Registrierung abgeschlossen. Bitte überprüfe ggf. dein Postfach.', 'success');
-                } else {
-                    // Sign in
-                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                    showNotification('Anmeldung erfolgreich!', 'success');
-                }
-            } catch (error) {
-                console.error('Auth Error:', error);
-                let msg = 'Ein unbekannter Fehler ist aufgetreten.';
-                if (error.message?.toLowerCase().includes('invalid')) msg = 'Ungültige Anmeldedaten.';
-                if (error.message?.toLowerCase().includes('user')) msg = 'E-Mail oder Passwort ist falsch.';
-                messageEl.textContent = msg;
-            } finally {
-                loader.classList.remove('active');
-                submitBtn.disabled = false;
-            }
-        };
+        const catSub = supabase.channel(`public:budget_categories:user_id=eq.${userId}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.CATEGORIES, filter: `user_id=eq.${userId}` }, payload => {
+                handleRealtimePayload(payload, COLLECTIONS.CATEGORIES);
+            }).subscribe();
+        subscriptions.push(catSub);
 
-        // ------------------------------------------------
-        // Realtime & DATA FETCH
-        // ------------------------------------------------
-        const stopSupabaseListeners = () => {
-            // remove all subscriptions
-            try {
-                subscriptions.forEach(sub => {
-                    if (sub && typeof supabase.removeChannel === 'function') {
-                        supabase.removeChannel(sub);
-                    } else if (sub && typeof sub.unsubscribe === 'function') {
-                        sub.unsubscribe();
-                    }
-                });
-            } catch (e) {
-                console.warn('Error unsubscribing:', e);
-            }
-            subscriptions = [];
+        // Budget Allocations: Filtern auf * ist riskant.
+        const budgetsSub = supabase.channel(`public:piggybank_budget_allocations:*`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.BUDGETS }, payload => {
+                handleRealtimePayload(payload, COLLECTIONS.BUDGETS);
+            }).subscribe();
+        subscriptions.push(budgetsSub);
+    };
 
-            piggyBanks = [];
-            savingGoals = [];
-            goalAllocations = [];
-            transactions = [];
-            budgetCategories = [];
-            budgetAllocations = [];
-        };
+    const fetchAllData = async () => {
+        if (!userId) return;
+        try {
+            // 1. PiggyBanks
+            let { data: banks, error: banksErr } = await supabase
+                .from(COLLECTIONS.BANKS)
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+            if (banksErr) throw banksErr;
+            piggyBanks = banks || [];
 
-        const startSupabaseListeners = async () => {
-            if (!userId) {
-                console.error('Supabase / User not ready');
-                return;
-            }
+            // 2. SavingGoals
+            let { data: goals, error: goalsErr } = await supabase
+                .from(COLLECTIONS.GOALS)
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+            if (goalsErr) throw goalsErr;
+            savingGoals = goals || [];
 
-            // Initial fetch for each table
-            await fetchAllData();
-
-            // Subscribe to realtime changes for each table filtered by user_id where appropriate
-            // physical_piggybanks
-            const banksSub = supabase.channel(`public:physical_piggybanks:user_id=eq.${userId}`)
-                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.BANKS, filter: `user_id=eq.${userId}` }, payload => {
-                    handleRealtimePayload(payload, COLLECTIONS.BANKS);
-                }).subscribe();
-            subscriptions.push(banksSub);
-
-            // saving_goals (user-owned)
-            const goalsSub = supabase.channel(`public:saving_goals:user_id=eq.${userId}`)
-                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.GOALS, filter: `user_id=eq.${userId}` }, payload => {
-                    handleRealtimePayload(payload, COLLECTIONS.GOALS);
-                }).subscribe();
-            subscriptions.push(goalsSub);
-
-            // piggybank_saving_goals (allocations)
-            const allocSub = supabase.channel(`public:piggybank_saving_goals:piggybank_id=eq.*`)
-                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.ALLOCATIONS }, payload => {
-                    // allocations don't always include user_id; filter client-side for piggybank belonging to user
-                    handleRealtimePayload(payload, COLLECTIONS.ALLOCATIONS);
-                }).subscribe();
-            subscriptions.push(allocSub);
-
-            // transactions (user-owned)
-            const transSub = supabase.channel(`public:transactions:user_id=eq.${userId}`)
-                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.TRANSACTIONS, filter: `user_id=eq.${userId}` }, payload => {
-                    handleRealtimePayload(payload, COLLECTIONS.TRANSACTIONS);
-                }).subscribe();
-            subscriptions.push(transSub);
-
-            // budget_categories (user-owned)
-            const catSub = supabase.channel(`public:budget_categories:user_id=eq.${userId}`)
-                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.CATEGORIES, filter: `user_id=eq.${userId}` }, payload => {
-                    handleRealtimePayload(payload, COLLECTIONS.CATEGORIES);
-                }).subscribe();
-            subscriptions.push(catSub);
-
-            // piggybank_budget_allocations
-            const budgetsSub = supabase.channel(`public:piggybank_budget_allocations:*`)
-                .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTIONS.BUDGETS }, payload => {
-                    handleRealtimePayload(payload, COLLECTIONS.BUDGETS);
-                }).subscribe();
-            subscriptions.push(budgetsSub);
-        };
-
-        // Fetch all data once (initial)
-        const fetchAllData = async () => {
-            try {
-                // piggyBanks
-                let { data: banks, error: banksErr } = await supabase
-                    .from(COLLECTIONS.BANKS)
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('created_at', { ascending: false });
-                if (banksErr) throw banksErr;
-                piggyBanks = banks || [];
-
-                // savingGoals
-                let { data: goals, error: goalsErr } = await supabase
-                    .from(COLLECTIONS.GOALS)
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('created_at', { ascending: false });
-                if (goalsErr) throw goalsErr;
-                savingGoals = goals || [];
-
-                // allocations (piggybank_saving_goals) - we need all where piggybank belongs to user
-                let { data: allocs, error: allocErr } = await supabase
-                    .from(COLLECTIONS.ALLOCATIONS)
-                    .select('*');
-                if (allocErr) throw allocErr;
-                // filter client-side by piggybank user_id
-                goalAllocations = (allocs || []).filter(a => {
-                    const pb = (piggyBanks || []).find(b => b.id === a.piggybank_id);
-                    return pb && pb.user_id === userId;
+            // 3. GoalAllocations (müssen manuell auf Basis von PiggyBanks gefiltert werden)
+            let { data: allocs, error: allocErr } = await supabase
+                .from(COLLECTIONS.ALLOCATIONS)
+                .select('*, piggybank:physical_piggybanks!inner(user_id)'); // JOIN für Filterung
+            if (allocErr) throw allocErr;
+            goalAllocations = (allocs || [])
+                .filter(a => a.piggybank.user_id === userId)
+                .map(a => {
+                    const { piggybank, ...rest } = a;
+                    return rest;
                 });
 
-                // transactions
-                let { data: trans, error: transErr } = await supabase
-                    .from(COLLECTIONS.TRANSACTIONS)
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('created_at', { ascending: false });
-                if (transErr) throw transErr;
-                transactions = trans || [];
+            // 4. Transactions
+            let { data: trans, error: transErr } = await supabase
+                .from(COLLECTIONS.TRANSACTIONS)
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+            if (transErr) throw transErr;
+            transactions = trans || [];
 
-                // budget_categories
-                let { data: cats, error: catsErr } = await supabase
-                    .from(COLLECTIONS.CATEGORIES)
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('created_at', { ascending: false });
-                if (catsErr) throw catsErr;
-                budgetCategories = cats || [];
+            // 5. BudgetCategories
+            let { data: cats, error: catsErr } = await supabase
+                .from(COLLECTIONS.CATEGORIES)
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+            if (catsErr) throw catsErr;
+            budgetCategories = cats || [];
 
-                // piggybank_budget_allocations
-                let { data: ballocs, error: ballocErr } = await supabase
-                    .from(COLLECTIONS.BUDGETS)
-                    .select('*');
-                if (ballocErr) throw ballocErr;
-                budgetAllocations = (ballocs || []).filter(a => {
-                    const pb = (piggyBanks || []).find(b => b.id === a.piggybank_id);
-                    return pb && pb.user_id === userId;
+            // 6. BudgetAllocations (müssen manuell auf Basis von PiggyBanks gefiltert werden)
+            let { data: ballocs, error: ballocErr } = await supabase
+                .from(COLLECTIONS.BUDGETS)
+                .select('*, piggybank:physical_piggybanks!inner(user_id)'); // JOIN für Filterung
+            if (ballocErr) throw ballocErr;
+            budgetAllocations = (ballocs || [])
+                .filter(a => a.piggybank.user_id === userId)
+                 .map(a => {
+                    const { piggybank, ...rest } = a;
+                    return rest;
                 });
 
-                updateUI();
-            } catch (error) {
-                console.error('Fetch data error:', error);
-            }
-        };
-
-        // Handle realtime payloads: insert/update/delete
-        const handleRealtimePayload = (payload, table) => {
-            const { eventType, new: newRow, old: oldRow } = payload;
-            // Standardize event type names
-            const event = payload.eventType || payload.event; // older/newer differences
-            // Update local arrays accordingly
-            switch (table) {
-                case COLLECTIONS.BANKS:
-                    if (event === 'INSERT') piggyBanks.unshift(newRow);
-                    else if (event === 'UPDATE') piggyBanks = piggyBanks.map(b => b.id === newRow.id ? newRow : b);
-                    else if (event === 'DELETE') piggyBanks = piggyBanks.filter(b => b.id !== oldRow.id);
-                    break;
-                case COLLECTIONS.GOALS:
-                    if (event === 'INSERT') savingGoals.unshift(newRow);
-                    else if (event === 'UPDATE') savingGoals = savingGoals.map(g => g.id === newRow.id ? newRow : g);
-                    else if (event === 'DELETE') savingGoals = savingGoals.filter(g => g.id !== oldRow.id);
-                    break;
-                case COLLECTIONS.ALLOCATIONS:
-                    if (event === 'INSERT') goalAllocations.unshift(newRow);
-                    else if (event === 'UPDATE') goalAllocations = goalAllocations.map(a => a.id === newRow.id ? newRow : a);
-                    else if (event === 'DELETE') goalAllocations = goalAllocations.filter(a => a.id !== oldRow.id);
-                    break;
-                case COLLECTIONS.TRANSACTIONS:
-                    if (event === 'INSERT') transactions.unshift(newRow);
-                    else if (event === 'UPDATE') transactions = transactions.map(t => t.id === newRow.id ? newRow : t);
-                    else if (event === 'DELETE') transactions = transactions.filter(t => t.id !== oldRow.id);
-                    // Keep transactions sorted
-                    transactions.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-                    break;
-                case COLLECTIONS.CATEGORIES:
-                    if (event === 'INSERT') budgetCategories.unshift(newRow);
-                    else if (event === 'UPDATE') budgetCategories = budgetCategories.map(c => c.id === newRow.id ? newRow : c);
-                    else if (event === 'DELETE') budgetCategories = budgetCategories.filter(c => c.id !== oldRow.id);
-                    break;
-                case COLLECTIONS.BUDGETS:
-                    if (event === 'INSERT') budgetAllocations.unshift(newRow);
-                    else if (event === 'UPDATE') budgetAllocations = budgetAllocations.map(b => b.id === newRow.id ? newRow : b);
-                    else if (event === 'DELETE') budgetAllocations = budgetAllocations.filter(b => b.id !== oldRow.id);
-                    break;
-            }
             updateUI();
-        };
-
-        // ------------------------------------------------
-        // CRUD OPERATIONS
-        // ------------------------------------------------
-        // NEU: Sparschwein mit user_id verknüpfen statt erstellen
-const claimPiggyBank = async (deviceId) => {
-    try {
-        // 1. Sparschwein mit diesem Code suchen
-        const { data: pigs, error: searchErr } = await supabase
-            .from(COLLECTIONS.BANKS)
-            .select('*')
-            .eq('device_id', deviceId)
-            .limit(1);
-
-        if (searchErr) throw searchErr;
-        if (!pigs || pigs.length === 0) {
-            showNotification('Kein Sparschwein mit diesem Code gefunden.', 'error');
-            return;
+        } catch (error) {
+            console.warn("Fetch data failed:", error);
+            showNotification('Fehler beim Laden der App-Daten. (Details in der Konsole)', 'error');
+            // Bei Fehler sollte die UI in einen stabilen Zustand gehen, z.B. Dashboard anzeigen
+            updateUI(); // Auch wenn Daten fehlen, versuchen wir die UI anzuzeigen.
         }
+    };
 
-        const pig = pigs[0];
+    const handleRealtimePayload = async (payload, table) => {
 
-        // 2. Prüfen ob bereits jemand dieses Sparschwein besitzt
-        if (pig.user_id && pig.user_id !== userId) {
-            showNotification('Dieses Sparschwein gehört bereits einem anderen Nutzer.', 'error');
-            return;
-        }
+    // 📌 Debug: WICHTIG!
+    console.log("⚡ REALTIME EVENT", table, payload);
 
-        if (pig.user_id === userId) {
-            showNotification('Dieses Sparschwein ist bereits mit deinem Konto verbunden.', 'info');
-            return;
-        }
-
-        // 3. Claim durchführen: user_id setzen
-        const { error: updateErr } = await supabase
-            .from(COLLECTIONS.BANKS)
-            .update({ user_id: userId })
-            .eq('id', pig.id);
-
-        if (updateErr) throw updateErr;
-
-        showNotification('Sparschwein erfolgreich verbunden!', 'success');
-
-    } catch (error) {
-        console.error('claimPiggyBank error:', error);
-        showNotification('Fehler beim Verbinden.', 'error');
-    }
+    // Bei jedem Realtime-Event werden ALLE Daten neu abgerufen, um die Konsistenz zu gewährleisten.
+    await fetchAllData();
+    updateUI();
 };
 
 
-        const addTransaction = async (bankId, type, amount, note) => {
-            try {
-                const payload = {
-                    user_id: userId,
-                    piggybank_id: bankId,
-                    amount: amount,
-                    type: type,
-                    note: note || null
-                };
-                const { data: transData, error: transErr } = await supabase.from(COLLECTIONS.TRANSACTIONS).insert(payload).select().single();
-                if (transErr) throw transErr;
 
-                // Update bank balance
-                const currentBank = getPiggyBank(bankId);
-                const delta = type === 'deposit' ? amount : -amount;
-                const newAmount = parseFloat(((parseFloat(currentBank?.current_amount || 0) || 0) + delta).toFixed(2));
+    // ------------------------------------------------
+    // CRUD OPERATIONS
+    // ------------------------------------------------
+    const claimPiggyBank = async (deviceId) => {
+        try {
+            const { data: pigs, error: searchErr } = await supabase
+                .from(COLLECTIONS.BANKS)
+                .select('id, user_id, name')
+                .eq('device_id', deviceId)
+                .limit(1);
 
-                const { data: updatedBank, error: updErr } = await supabase
-                    .from(COLLECTIONS.BANKS)
-                    .update({ current_amount: newAmount })
-                    .eq('id', bankId)
-                    .select()
-                    .single();
-                if (updErr) console.warn('Bank update warning:', updErr.message);
-
-                showNotification(`${type === 'deposit' ? '+' : '-'} ${formatCurrency(amount)} verbucht.`, 'success');
-            } catch (error) {
-                console.error('addTransaction error:', error);
-                showNotification('Fehler beim Verarbeiten der Transaktion.', 'error');
-            }
-        };
-
-        // addGoal: create saving_goals & piggybank_saving_goals
-        const addGoal = async (bankId, goalName, goalTarget, goalRate) => {
-            try {
-                const goalPayload = {
-                    user_id: userId,
-                    name: goalName,
-                    target_amount: goalTarget,
-                    current_amount: 0.00,
-                    color: null,
-                    icon: null
-                };
-                const { data: goalData, error: goalErr } = await supabase.from(COLLECTIONS.GOALS).insert(goalPayload).select().single();
-                if (goalErr) throw goalErr;
-
-                const allocPayload = {
-                    piggybank_id: bankId,
-                    savinggoal_id: goalData.id,
-                    allocation_percent: goalRate
-                };
-                const { error: allocErr } = await supabase.from(COLLECTIONS.ALLOCATIONS).insert(allocPayload);
-                if (allocErr) throw allocErr;
-
-                showNotification(`Sparziel "${goalName}" mit ${goalRate}% Zuteilung erstellt.`, 'success');
-            } catch (error) {
-                console.error('addGoal error:', error);
-                showNotification('Fehler beim Erstellen des Sparziels.', 'error');
-            }
-        };
-
-        // addBudgetCategory: insert category + piggybank_budget_allocations
-        const addBudgetCategory = async (bankId, categoryName, monthlyLimit, allocationRate) => {
-            try {
-                const catPayload = {
-                    user_id: userId,
-                    name: categoryName,
-                    monthly_limit: monthlyLimit,
-                    current_usage: 0.00,
-                    color: null
-                };
-                const { data: catData, error: catErr } = await supabase.from(COLLECTIONS.CATEGORIES).insert(catPayload).select().single();
-                if (catErr) throw catErr;
-
-                const allocPayload = {
-                    user_id: userId,
-                    piggybank_id: bankId,
-                    category_id: catData.id,
-                    allocation_percent: allocationRate
-                };
-                const { error: allocErr } = await supabase.from(COLLECTIONS.BUDGETS).insert(allocPayload);
-                if (allocErr) throw allocErr;
-
-                showNotification(`Budget-Kategorie "${categoryName}" mit ${allocationRate}% Zuteilung erstellt.`, 'success');
-            } catch (error) {
-                console.error('addBudgetCategory error:', error);
-                showNotification('Fehler beim Erstellen der Budget-Kategorie.', 'error');
-            }
-        };
-
-        // ------------------------------------------------
-        // NAV & UI (unverändert Struktur; nur Datenquelle angepasst)
-        // ------------------------------------------------
-        const updateNav = (activeView) => {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                const itemView = item.getAttribute('data-view');
-                const isActive = itemView === activeView || (activeView !== 'dashboard' && item.getAttribute('data-view') === 'dashboard');
-                item.classList.toggle('active', isActive);
-            });
-        };
-
-        const updateUI = () => {
-            if (!isAuthReady || !userId) return;
-
-            const headerTitle = document.getElementById('header-title');
-            const backButton = document.getElementById('back-button');
-            const appHeader = document.getElementById('app-header');
-
-            let title = '';
-            let showBackButton = false;
-
-            if (currentView === 'dashboard') {
-                title = 'Meine Sparwelt';
-                showBackButton = false;
-                appHeader.classList.add('bg-primary-blue');
-                appHeader.classList.remove('shadow-none', 'bg-white');
-                backButton.classList.remove('text-primary-blue');
-                backButton.classList.add('text-white');
-                headerTitle.classList.remove('text-gray-800');
-                headerTitle.classList.add('text-white');
-            } else {
-                const bank = getPiggyBank(selectedPiggyBankId);
-                title = currentView === 'details' ? (bank ? bank.name : 'Sparschwein Details') :
-                        currentView === 'goals' ? 'Sparziele verwalten' :
-                        currentView === 'budget' ? 'Budget Planer' :
-                        'Alle Aktivitäten';
-                showBackButton = true;
-                appHeader.classList.remove('bg-primary-blue');
-                appHeader.classList.add('shadow-lg', 'bg-white');
-                backButton.classList.remove('text-white');
-                backButton.classList.add('text-primary-blue');
-                headerTitle.classList.remove('text-white');
-                headerTitle.classList.add('text-gray-800');
+            if (searchErr) throw searchErr;
+            if (!pigs || pigs.length === 0) {
+                showNotification('Kein Sparschwein mit diesem Code gefunden.', 'error');
+                return;
             }
 
-            headerTitle.textContent = title;
-            backButton.classList.toggle('hidden', !showBackButton);
-            updateNav(currentView);
+            const pig = pigs[0];
 
-            switch (currentView) {
-                case 'dashboard':
-                    renderDashboard();
-                    break;
-                case 'details':
-                    renderPiggyBankDetails();
-                    break;
-                case 'goals':
-                    renderGoals();
-                    break;
-                case 'transactions':
-                    renderTransactions();
-                    break;
-                case 'budget':
-                    renderBudgetPlannerDetails();
-                    break;
-                default:
-                    renderDashboard();
+            if (pig.user_id && pig.user_id !== userId) {
+                showNotification('Dieses Sparschwein gehört bereits einem anderen Nutzer.', 'error');
+                return;
             }
-        };
 
-        const goBack = () => {
-            if (currentView === 'details') {
-                currentView = 'dashboard';
-                selectedPiggyBankId = null;
-            } else if (['goals', 'transactions', 'budget'].includes(currentView)) {
-                currentView = 'details';
+            if (pig.user_id === userId) {
+                showNotification('Dieses Sparschwein ist bereits mit deinem Konto verbunden.', 'info');
+                return;
             }
-            updateUI();
-        };
 
-        const navigateTo = (view, id = null) => {
-            if (id) selectedPiggyBankId = id;
+            const { error: updateErr } = await supabase
+                .from(COLLECTIONS.BANKS)
+                .update({ user_id: userId })
+                .eq('id', pig.id);
 
-            if (['goals', 'transactions', 'budget'].includes(view) && !selectedPiggyBankId) {
-                currentView = 'dashboard';
-            } else {
-                currentView = view;
-            }
-            updateUI();
-        };
+            if (updateErr) throw updateErr;
 
-        // --- Render Views (identisch zu vorher, nur Daten aus Supabase) ---
-        const renderDashboard = () => {
-            const content = document.getElementById('content');
-            content.innerHTML = `
-                <div class="p-2 pt-0">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Wähle dein Sparschwein</h2>
-                    <div class="grid grid-cols-1 gap-4">
-                        ${piggyBanks.map(bank => `
-                            <div onclick="navigateTo('details', '${bank.id}')" 
-                                 class="bg-card-light p-5 rounded-2xl shadow-xl border-b-4 border-primary-blue hover:shadow-2xl transition duration-300 transform hover:scale-[1.01] cursor-pointer">
-                                <div class="flex items-center space-x-4">
-                                    <span class="text-3xl bg-yellow-400 p-3 rounded-full shadow-md">💰</span>
-                                    <div>
-                                        <h3 class="text-lg font-bold text-gray-800">${bank.name || 'Unbenannt'}</h3>
-                                        <p class="text-3xl font-extrabold text-secondary-green mt-1">${formatCurrency(bank.current_amount)}</p>
-                                    </div>
+        } catch (error) {
+            console.error('claimPiggyBank error:', error);
+            showNotification('Fehler beim Verbinden.', 'error');
+        }
+    };
+
+    const addTransaction = async (bankId, type, amount, note) => {
+        try {
+            const payload = {
+                user_id: userId,
+                piggybank_id: bankId,
+                amount: amount,
+                type: type,
+                note: note || null
+            };
+            const { data: transData, error: transErr } = await supabase.from(COLLECTIONS.TRANSACTIONS).insert(payload).select().single();
+            if (transErr) throw transErr;
+
+            const currentBank = getPiggyBank(bankId);
+            const delta = type === 'deposit' ? amount : -amount;
+            const newAmount = parseFloat(((parseFloat(currentBank?.current_amount || 0) || 0) + delta).toFixed(2));
+
+            const { data: updatedBank, error: updErr } = await supabase
+                .from(COLLECTIONS.BANKS)
+                .update({ current_amount: newAmount })
+                .eq('id', bankId)
+                .select()
+                .single();
+            if (updErr) console.warn('Bank update warning:', updErr.message);
+
+        } catch (error) {
+            console.error('addTransaction error:', error);
+            showNotification('Fehler beim Verarbeiten der Transaktion.', 'error');
+        }
+    };
+
+    const addGoal = async (bankId, goalName, goalTarget, goalRate) => {
+        try {
+            const goalPayload = {
+                user_id: userId,
+                name: goalName,
+                target_amount: goalTarget,
+                current_amount: 0.00,
+                color: null,
+                icon: null
+            };
+            const { data: goalData, error: goalErr } = await supabase.from(COLLECTIONS.GOALS).insert(goalPayload).select().single();
+            if (goalErr) throw goalErr;
+
+            const allocPayload = {
+                piggybank_id: bankId,
+                savinggoal_id: goalData.id,
+                allocation_percent: goalRate
+            };
+            const { error: allocErr } = await supabase.from(COLLECTIONS.ALLOCATIONS).insert(allocPayload);
+            if (allocErr) throw allocErr;
+
+        } catch (error) {
+            console.error('addGoal error:', error);
+            showNotification('Fehler beim Erstellen des Sparziels.', 'error');
+        }
+    };
+
+    const addBudgetCategory = async (bankId, categoryName, monthlyLimit, allocationRate) => {
+        try {
+            const catPayload = {
+                user_id: userId,
+                name: categoryName,
+                monthly_limit: monthlyLimit,
+                current_usage: 0.00,
+                color: null
+            };
+            const { data: catData, error: catErr } = await supabase.from(COLLECTIONS.CATEGORIES).insert(catPayload).select().single();
+            if (catErr) throw catErr;
+
+            const allocPayload = {
+                user_id: userId,
+                piggybank_id: bankId,
+                category_id: catData.id,
+                allocation_percent: allocationRate
+            };
+            const { error: allocErr } = await supabase.from(COLLECTIONS.BUDGETS).insert(allocPayload);
+            if (allocErr) throw allocErr;
+
+        } catch (error) {
+            console.error('addBudgetCategory error:', error);
+            showNotification('Fehler beim Erstellen der Budget-Kategorie.', 'error');
+        }
+    };
+
+    // ------------------------------------------------
+    // NAV & UI
+    // ------------------------------------------------
+    const updateNav = (activeView) => {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            const itemView = item.getAttribute('data-view');
+            const isActive = itemView === activeView || (activeView !== 'dashboard' && item.getAttribute('data-view') === 'dashboard');
+            item.classList.toggle('active', isActive);
+        });
+    };
+
+    const updateUI = () => {
+        if (!isAuthReady || !userId) return;
+
+        const headerTitle = document.getElementById('header-title');
+        const backButton = document.getElementById('back-button');
+        const appHeader = document.getElementById('app-header');
+
+        let title = '';
+        let showBackButton = false;
+
+        if (currentView === 'dashboard') {
+            title = 'Meine Sparwelt';
+            showBackButton = false;
+            appHeader.classList.add('bg-primary-blue');
+            appHeader.classList.remove('shadow-none', 'bg-white');
+            backButton.classList.remove('text-primary-blue');
+            backButton.classList.add('text-white');
+            headerTitle.classList.remove('text-gray-800');
+            headerTitle.classList.add('text-white');
+        } else {
+            const bank = getPiggyBank(selectedPiggyBankId);
+            title = currentView === 'details' ? (bank ? bank.name : 'Sparschwein Details') :
+                    currentView === 'goals' ? 'Sparziele verwalten' :
+                    currentView === 'transactions' ? 'Alle Aktivitäten' :
+                    currentView === 'budget' ? 'Budget Planer' :
+                    'Alle Aktivitäten';
+            showBackButton = true;
+            appHeader.classList.remove('bg-primary-blue');
+            appHeader.classList.add('shadow-lg', 'bg-white');
+            backButton.classList.remove('text-white');
+            backButton.classList.add('text-primary-blue');
+            headerTitle.classList.remove('text-white');
+            headerTitle.classList.add('text-gray-800');
+        }
+
+        headerTitle.textContent = title;
+        backButton.classList.toggle('hidden', !showBackButton);
+        updateNav(currentView);
+
+        switch (currentView) {
+            case 'dashboard':
+                renderDashboard();
+                break;
+            case 'details':
+                renderPiggyBankDetails();
+                break;
+            case 'goals':
+                renderGoals();
+                break;
+            case 'transactions':
+                renderTransactions();
+                break;
+            case 'budget':
+                renderBudgetPlannerDetails();
+                break;
+            default:
+                renderDashboard();
+        }
+    };
+
+    const goBack = () => {
+        if (currentView === 'details') {
+            currentView = 'dashboard';
+            selectedPiggyBankId = null;
+        } else if (['goals', 'transactions', 'budget'].includes(currentView)) {
+            currentView = 'details';
+        }
+        updateUI();
+    };
+
+    const navigateTo = (view, id = null) => {
+        if (id) selectedPiggyBankId = id;
+
+        if (['goals', 'transactions', 'budget'].includes(view) && !selectedPiggyBankId) {
+            currentView = 'dashboard';
+        } else {
+            currentView = view;
+        }
+        updateUI();
+    };
+
+    // --- Render Views ---
+    const renderDashboard = () => {
+        const content = document.getElementById('content');
+        content.innerHTML = `
+            <div class="p-2 pt-0">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Wähle dein Sparschwein</h2>
+                <div class="grid grid-cols-1 gap-4">
+                    ${piggyBanks.map(bank => `
+                        <div onclick="navigateTo('details', '${bank.id}')" 
+                             class="bg-card-light p-5 rounded-2xl shadow-xl border-b-4 border-primary-blue hover:shadow-2xl transition duration-300 transform hover:scale-[1.01] cursor-pointer">
+                            <div class="flex items-center space-x-4">
+                                <span class="text-3xl bg-yellow-400 p-3 rounded-full shadow-md">💰</span>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-800">${bank.name || 'Unbenannt'}</h3>
+                                    <p class="text-3xl font-extrabold text-secondary-green mt-1">${formatCurrency(bank.current_amount)}</p>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-3 text-right">Tippen für Übersicht</p>
                             </div>
-                        `).join('')}
-                        <div onclick="openModal('addPiggyBank')" class="bg-gray-100 p-5 rounded-2xl shadow-inner border-2 border-dashed border-gray-300 text-center hover:bg-gray-50 transition duration-300 cursor-pointer">
-                            <div class="flex flex-col items-center justify-center h-full py-4">
-                                <span class="text-4xl text-gray-400 mb-2">➕</span>
-                                <p class="text-lg font-semibold text-gray-500">Neues Sparschwein hinzufügen</p>
-                            </div>
+                            <p class="text-xs text-gray-500 mt-3 text-right">Tippen für Übersicht</p>
                         </div>
+                    `).join('')}
+                    <div onclick="openModal('addPiggyBank')" class="bg-gray-100 p-5 rounded-2xl shadow-inner border-2 border-dashed border-gray-300 text-center hover:bg-gray-50 transition duration-300 cursor-pointer">
+                        <div class="flex flex-col items-center justify-center h-full py-4">
+                            <span class="text-4xl text-gray-400 mb-2">➕</span>
+                            <p class="text-lg font-semibold text-gray-500">Neues Sparschwein hinzufügen</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+
+    const renderPiggyBankDetails = () => {
+        const bank = getPiggyBank(selectedPiggyBankId);
+        if (!bank) { navigateTo('dashboard'); return; }
+
+        const transactionsList = getBankTransactions(bank.id).slice(0, 3);
+        const goalsList = getBankGoals(bank.id);
+        const bankBudgets = getBankBudgets(bank.id);
+
+        let goalsHtml = goalsList.length > 0 ? goalsList.slice(0, 1).map(goal => {
+            const percentage = (goal.current_amount / goal.target_amount) * 100 || 0;
+            const allocationText = goal.allocation_percent ? `(${goal.allocation_percent}%)` : '';
+            return `
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-semibold text-gray-700 truncate">${goal.name} ${allocationText}</span>
+                        <span class="text-sm font-medium text-primary-blue">${formatCurrency(goal.current_amount)} / ${formatCurrency(goal.target_amount)}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="h-2 rounded-full ${goal.color || 'bg-red-500'}" style="width: ${Math.min(100, percentage)}%"></div>
                     </div>
                 </div>
             `;
-        };
+        }).join('') : '<p class="text-gray-500 italic text-sm">Noch keine Sparziele festgelegt.</p>';
 
-        const renderPiggyBankDetails = () => {
-            const bank = getPiggyBank(selectedPiggyBankId);
-            if (!bank) { navigateTo('dashboard'); return; }
+        if (goalsList.length > 1) {
+             goalsHtml += `<p class="text-xs text-gray-500 mt-1">und ${goalsList.length - 1} weitere Ziele...</p>`;
+        }
 
-            const transactionsList = getBankTransactions(bank.id).slice(0, 3);
-            const goalsList = getBankGoals(bank.id);
-            const bankBudgets = getBankBudgets(bank.id);
-
-            let goalsHtml = goalsList.length > 0 ? goalsList.slice(0, 1).map(goal => {
-                const percentage = (goal.current_amount / goal.target_amount) * 100 || 0;
-                const allocationText = goal.allocation_percent ? `(${goal.allocation_percent}%)` : '';
-                return `
-                    <div class="mt-3">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-semibold text-gray-700 truncate">${goal.name} ${allocationText}</span>
-                            <span class="text-sm font-medium text-primary-blue">${formatCurrency(goal.current_amount)} / ${formatCurrency(goal.target_amount)}</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="h-2 rounded-full ${goal.color || 'bg-red-500'}" style="width: ${Math.min(100, percentage)}%"></div>
-                        </div>
+        let budgetHtml = bankBudgets.length > 0 ? bankBudgets.slice(0, 1).map(budget => {
+            const usagePercentage = ((budget.current_usage || 0) / (budget.monthly_limit || 1)) * 100;
+            const progressBarColor = usagePercentage > 90 ? 'bg-red-500' : 'bg-primary-blue';
+            const allocationText = budget.allocation_percent ? `(${budget.allocation_percent}%)` : '';
+            return `
+                <div class="mt-3">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-semibold text-gray-700 truncate">${budget.name} ${allocationText}</span>
+                        <span class="text-sm font-medium text-primary-blue">Verbleibend: ${formatCurrency(budget.remaining_budget)}</span>
                     </div>
-                `;
-            }).join('') : '<p class="text-gray-500 italic text-sm">Noch keine Sparziele festgelegt.</p>';
-
-            if (goalsList.length > 1) {
-                 goalsHtml += `<p class="text-xs text-gray-500 mt-1">und ${goalsList.length - 1} weitere Ziele...</p>`;
-            }
-
-            let budgetHtml = bankBudgets.length > 0 ? bankBudgets.slice(0, 1).map(budget => {
-                const usagePercentage = ((budget.current_usage || 0) / (budget.monthly_limit || 1)) * 100;
-                const progressBarColor = usagePercentage > 90 ? 'bg-red-500' : 'bg-primary-blue';
-                const allocationText = budget.allocation_percent ? `(${budget.allocation_percent}%)` : '';
-                return `
-                    <div class="mt-3">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-semibold text-gray-700 truncate">${budget.name} ${allocationText}</span>
-                            <span class="text-sm font-medium text-primary-blue">Verbleibend: ${formatCurrency(budget.remaining_budget)}</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="h-2 rounded-full ${progressBarColor}" style="width: ${Math.min(100, usagePercentage)}%"></div>
-                        </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="h-2 rounded-full ${progressBarColor}" style="width: ${Math.min(100, usagePercentage)}%"></div>
                     </div>
-                `;
-            }).join('') : '<p class="text-gray-500 italic text-sm">Noch keine Budgets zugeordnet.</p>';
-
-            if (bankBudgets.length > 1) {
-                 budgetHtml += `<p class="text-xs text-gray-500 mt-1">und ${bankBudgets.length - 1} weitere Budgets...</p>`;
-            }
-
-            const content = document.getElementById('content');
-            content.innerHTML = `
-                <div class="text-center mb-6 p-6 bg-primary-blue rounded-b-3xl shadow-xl -mx-4 mt-[-1rem] text-white">
-                    <p class="text-lg opacity-80">Aktuelles Guthaben</p>
-                    <p class="text-5xl font-extrabold mt-1">${formatCurrency(bank.current_amount)}</p>
-                    <p class="text-sm mt-2 opacity-80">Gespeichert in der Datenbank.</p>
                 </div>
+            `;
+        }).join('') : '<p class="text-gray-500 italic text-sm">Noch keine Budgets zugeordnet.</p>';
 
-                <div class="grid grid-cols-1 gap-4 mb-8">
-                    <button onclick="openModal('withdrawal')" class="flex flex-col items-center p-4 bg-accent-pink text-white rounded-xl shadow-lg hover:bg-pink-600 transition duration-200 transform hover:scale-[1.02] font-bold text-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
-                        Auszahlung protokollieren
-                    </button>
-                    <p class="text-center text-sm text-gray-500">Einzahlungen werden automatisch über den Geräte-Scan erfasst.</p>
-                </div>
+        if (bankBudgets.length > 1) {
+             budgetHtml += `<p class="text-xs text-gray-500 mt-1">und ${bankBudgets.length - 1} weitere Budgets...</p>`;
+        }
 
-                <div onclick="navigateTo('goals', '${bank.id}')" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-red-500 hover:bg-gray-50 cursor-pointer transition">
-                    <h3 class="text-lg font-bold text-red-700 flex justify-between items-center">
-                        🎯 Sparziele
-                        <span class="text-sm font-medium text-red-500">${goalsList.length} Ziele</span>
-                    </h3>
-                    ${goalsHtml}
-                </div>
+        const content = document.getElementById('content');
+        content.innerHTML = `
+            <div class="text-center mb-6 p-6 bg-primary-blue rounded-b-3xl shadow-xl -mx-4 mt-[-1rem] text-white">
+                <p class="text-lg opacity-80">Aktuelles Guthaben</p>
+                <p class="text-5xl font-extrabold mt-1">${formatCurrency(bank.current_amount)}</p>
+                <p class="text-sm mt-2 opacity-80">Gespeichert in der Datenbank.</p>
+            </div>
 
-                <div onclick="navigateTo('budget', '${bank.id}')" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-secondary-green mt-6 hover:bg-gray-50 cursor-pointer transition">
-                    <h3 class="text-lg font-bold text-secondary-green flex justify-between items-center">
-                        📈 Budget Planer
-                        <span class="text-sm font-medium text-secondary-green">${bankBudgets.length} Budgets</span>
-                    </h3>
-                    ${budgetHtml}
-                </div>
+            <div class="grid grid-cols-1 gap-4 mb-8">
+                <button onclick="openModal('withdrawal')" class="flex flex-col items-center p-4 bg-accent-pink text-white rounded-xl shadow-lg hover:bg-pink-600 transition duration-200 transform hover:scale-[1.02] font-bold text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
+                    Auszahlung protokollieren
+                </button>
+                <p class="text-center text-sm text-gray-500">Einzahlungen werden automatisch über den Geräte-Scan erfasst.</p>
+            </div>
 
-                <div onclick="navigateTo('transactions', '${bank.id}')" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-primary-blue mt-6 hover:bg-gray-50 cursor-pointer transition">
-                    <h3 class="text-lg font-bold text-primary-blue flex justify-between items-center mb-3">
-                        📋 Letzte Aktivität
-                        <span class="text-sm font-medium text-primary-blue hover:underline">Alle anzeigen</span>
-                    </h3>
-                    ${transactionsList.map(t => `
-                        <div class="flex justify-between items-center py-2 border-b last:border-b-0">
-                            <div class="flex items-center space-x-3">
-                                <span class="text-xl ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">${t.type === 'deposit' ? '🟢' : '🔴'}</span>
+            <div onclick="navigateTo('goals', '${bank.id}')" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-red-500 hover:bg-gray-50 cursor-pointer transition">
+                <h3 class="text-lg font-bold text-red-700 flex justify-between items-center">
+                    🎯 Sparziele
+                    <span class="text-sm font-medium text-red-500">${goalsList.length} Ziele</span>
+                </h3>
+                ${goalsHtml}
+            </div>
+
+            <div onclick="navigateTo('budget', '${bank.id}')" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-secondary-green mt-6 hover:bg-gray-50 cursor-pointer transition">
+                <h3 class="text-lg font-bold text-secondary-green flex justify-between items-center">
+                    📈 Budget Planer
+                    <span class="text-sm font-medium text-secondary-green">${bankBudgets.length} Budgets</span>
+                </h3>
+                ${budgetHtml}
+            </div>
+
+            <div onclick="navigateTo('transactions', '${bank.id}')" class="bg-card-light p-5 rounded-xl shadow-md border-l-4 border-primary-blue mt-6 hover:bg-gray-50 cursor-pointer transition">
+                <h3 class="text-lg font-bold text-primary-blue flex justify-between items-center mb-3">
+                    📋 Letzte Aktivität
+                    <span class="text-sm font-medium text-primary-blue hover:underline">Alle anzeigen</span>
+                </h3>
+                ${transactionsList.map(t => `
+                    <div class="flex justify-between items-center py-2 border-b last:border-b-0">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xl ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">${t.type === 'deposit' ? '🟢' : '🔴'}</span>
+                            <div>
+                                <p class="font-medium text-gray-800 text-sm">${t.note || 'Kein Kommentar'}</p>
+                                <p class="text-xs text-gray-500">${formatTimestamp(t.created_at)}</p>
+                            </div>
+                        </div>
+                        <span class="font-bold text-sm ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">
+                            ${t.type === 'deposit' ? '+' : '-'}&nbsp;${formatCurrency(t.amount)}
+                        </span>
+                    </div>
+                `).join('')}
+                ${transactionsList.length === 0 ? '<p class="text-center text-gray-500 italic text-sm">Noch keine Bewegungen vorhanden.</p>' : ''}
+            </div>
+        `;
+    };
+
+    const renderGoals = () => {
+        const bank = getPiggyBank(selectedPiggyBankId);
+        if (!bank) { navigateTo('dashboard'); return; }
+        const bankGoals = getBankGoals(selectedPiggyBankId);
+        const totalContribution = bankGoals.reduce((sum, g) => sum + (parseFloat(g.allocation_percent || 0)), 0);
+
+        const content = document.getElementById('content');
+        content.innerHTML = `
+            <div class="flex justify-between items-center mb-6 pt-2">
+                <h2 class="text-xl font-bold text-gray-700">Sparziele für ${bank.name}</h2>
+                <button onclick="openModal('addGoal')" class="flex items-center bg-secondary-green text-white px-3 py-1 text-sm rounded-full shadow-md hover:bg-green-600 transition">
+                    <span class="text-lg mr-1">+</span> Ziel
+                </button>
+            </div>
+
+            <div class="bg-card-light p-5 rounded-xl shadow-lg mb-6 text-center border-b-4 ${totalContribution > 100 ? 'border-red-500' : 'border-secondary-green'}">
+                <p class="text-xl font-extrabold ${totalContribution > 100 ? 'text-red-500' : 'text-secondary-green'}">${totalContribution}% Sparrate</p>
+                <p class="text-sm text-gray-500">Gesamt-Zuteilung von Einzahlungen auf dieses Sparschwein.</p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                ${bankGoals.map(goal => {
+                    const percentage = Math.round((goal.current_amount / goal.target_amount) * 100) || 0;
+                    return `
+                        <div class="p-4 bg-card-light rounded-xl shadow-md border-l-4 border-red-500">
+                            <div class="flex justify-between items-start">
                                 <div>
-                                    <p class="font-medium text-gray-800 text-sm">${t.note || 'Kein Kommentar'}</p>
-                                    <p class="text-xs text-gray-500">${formatTimestamp(t.created_at)}</p>
+                                    <p class="text-lg font-bold text-gray-800">${goal.name}</p>
+                                    <p class="text-sm text-gray-500">Beitrag: ${goal.allocation_percent}%</p>
+                                </div>
+                                <p class="text-xl font-extrabold text-red-500">${formatCurrency(goal.current_amount)}</p>
+                            </div>
+                            <div class="mt-3">
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="h-3 rounded-full ${goal.color || 'bg-red-500'}" style="width: ${Math.min(100, percentage)}%"></div>
+                                </div>
+                                <div class="flex justify-between text-xs mt-1 text-gray-500">
+                                    <span>${percentage}% erreicht</span>
+                                    <span class="font-medium">Ziel: ${formatCurrency(goal.target_amount)}</span>
                                 </div>
                             </div>
-                            <span class="font-bold text-sm ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    };
+
+    const renderBudgetPlannerDetails = () => {
+        const bank = getPiggyBank(selectedPiggyBankId);
+        if (!bank) { navigateTo('dashboard'); return; }
+        const bankBudgets = getBankBudgets(selectedPiggyBankId);
+        const totalAllocation = bankBudgets.reduce((sum, b) => sum + (parseFloat(b.allocation_percent || 0)), 0);
+
+        const content = document.getElementById('content');
+        content.innerHTML = `
+            <div class="flex justify-between items-center mb-6 pt-2">
+                <h2 class="text-xl font-bold text-gray-700">Budget Planer für ${bank.name}</h2>
+                <button onclick="openModal('addBudgetCategory')" class="flex items-center bg-primary-blue text-white px-3 py-1 text-sm rounded-full shadow-md hover:bg-indigo-600 transition">
+                    <span class="text-lg mr-1">+</span> Budget
+                </button>
+            </div>
+
+            <div class="bg-card-light p-5 rounded-xl shadow-lg mb-6 text-center border-b-4 ${totalAllocation > 100 ? 'border-red-500' : 'border-primary-blue'}">
+                <p class="text-xl font-extrabold ${totalAllocation > 100 ? 'text-red-500' : 'text-primary-blue'}">${totalAllocation}% Zuordnung</p>
+                <p class="text-sm text-gray-500">Gesamt-Zuordnung des Sparschweins zu Budget-Kategorien (von Einzahlungen).</p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                ${bankBudgets.map(budget => {
+                    const usagePercentage = Math.round((budget.current_usage / (budget.monthly_limit || 1)) * 100);
+                    const progressBarColor = usagePercentage > 90 ? 'bg-red-500' : 'bg-primary-blue';
+
+                    return `
+                        <div class="p-4 bg-card-light rounded-xl shadow-md border-l-4 ${progressBarColor}">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-lg font-bold text-gray-800">${budget.name}</p>
+                                    <p class="text-sm text-gray-500">Zuteilung: ${budget.allocation_percent}%</p>
+                                </div>
+                                <p class="text-xl font-extrabold text-primary-blue">${formatCurrency(budget.remaining_budget)}</p>
+                            </div>
+                            <div class="mt-3">
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="h-3 rounded-full ${progressBarColor}" style="width: ${Math.min(100, usagePercentage)}%"></div>
+                                </div>
+                                <div class="flex justify-between text-xs mt-1 text-gray-500">
+                                    <span>${usagePercentage}% verbraucht</span>
+                                    <span class="font-medium">Limit: ${formatCurrency(budget.monthly_limit)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            ${bankBudgets.length === 0 ? '<p class="text-center p-8 text-gray-500 italic">Noch keine Budget-Kategorien zugeordnet.</p>' : ''}
+        `;
+    };
+
+    const renderTransactions = () => {
+        const bank = getPiggyBank(selectedPiggyBankId);
+        if (!bank) { navigateTo('dashboard'); return; }
+        const allTransactions = getBankTransactions(selectedPiggyBankId);
+
+        const content = document.getElementById('content');
+        content.innerHTML = `
+            <h2 class="text-xl font-bold text-gray-700 mb-4 pt-2">Alle Bewegungen für ${bank.name}</h2>
+
+            <div class="bg-card-light rounded-xl shadow-lg overflow-hidden max-h-[80vh]">
+                <div class="sticky top-0 bg-gray-100 flex justify-between p-3 font-semibold text-gray-600 text-sm border-b">
+                    <span class="w-1/5">Datum</span>
+                    <span class="w-2/5">Kommentar</span>
+                    <span class="w-1/5">Typ</span>
+                    <span class="w-1/5 text-right">Betrag</span>
+                </div>
+                <div class="divide-y divide-gray-100">
+                    ${allTransactions.map(t => `
+                        <div class="flex justify-between items-center p-3 hover:bg-gray-50 transition">
+                            <span class="w-1/5 text-xs text-gray-500">${formatTimestamp(t.created_at)}</span>
+                            <div class="w-2/5">
+                                <p class="font-medium text-gray-800 text-sm truncate">${t.note || 'Kein Kommentar'}</p>
+                            </div>
+                            <span class="w-1/5 text-xs font-medium ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">${t.type === 'deposit' ? 'Einzahlung' : 'Auszahlung'}</span>
+                            <span class="w-1/5 text-right font-bold text-sm ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">
                                 ${t.type === 'deposit' ? '+' : '-'}&nbsp;${formatCurrency(t.amount)}
                             </span>
                         </div>
                     `).join('')}
-                    ${transactionsList.length === 0 ? '<p class="text-center text-gray-500 italic text-sm">Noch keine Bewegungen vorhanden.</p>' : ''}
                 </div>
-            `;
-        };
+            </div>
+            ${allTransactions.length === 0 ? '<p class="text-center p-8 text-gray-500 italic">Noch keine Transaktionen vorhanden.</p>' : ''}
+        `;
+    };
 
-        const renderGoals = () => {
-            const bank = getPiggyBank(selectedPiggyBankId);
-            if (!bank) { navigateTo('dashboard'); return; }
-            const bankGoals = getBankGoals(selectedPiggyBankId);
-            const totalContribution = bankGoals.reduce((sum, g) => sum + (parseFloat(g.allocation_percent || 0)), 0);
+    // ------------------------------------------------
+    // Modal management
+    // ------------------------------------------------
+    const openModal = (type) => {
+        const container = document.getElementById('modal-container');
+        let modalContent = '';
+        let title = '';
+        let actionColor = 'bg-primary-blue';
+        const bank = getPiggyBank(selectedPiggyBankId);
 
-            const content = document.getElementById('content');
-            content.innerHTML = `
-                <div class="flex justify-between items-center mb-6 pt-2">
-                    <h2 class="text-xl font-bold text-gray-700">Sparziele für ${bank.name}</h2>
-                    <button onclick="openModal('addGoal')" class="flex items-center bg-secondary-green text-white px-3 py-1 text-sm rounded-full shadow-md hover:bg-green-600 transition">
-                        <span class="text-lg mr-1">+</span> Ziel
-                    </button>
-                </div>
+        if (['withdrawal', 'addGoal', 'addBudgetCategory'].includes(type) && !bank) return;
 
-                <div class="bg-card-light p-5 rounded-xl shadow-lg mb-6 text-center border-b-4 ${totalContribution > 100 ? 'border-red-500' : 'border-secondary-green'}">
-                    <p class="text-xl font-extrabold ${totalContribution > 100 ? 'text-red-500' : 'text-secondary-green'}">${totalContribution}% Sparrate</p>
-                    <p class="text-sm text-gray-500">Gesamt-Zuteilung von Einzahlungen auf dieses Sparschwein.</p>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4">
-                    ${bankGoals.map(goal => {
-                        const percentage = Math.round((goal.current_amount / goal.target_amount) * 100) || 0;
-                        return `
-                            <div class="p-4 bg-card-light rounded-xl shadow-md border-l-4 border-red-500">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <p class="text-lg font-bold text-gray-800">${goal.name}</p>
-                                        <p class="text-sm text-gray-500">Beitrag: ${goal.allocation_percent}%</p>
-                                    </div>
-                                    <p class="text-xl font-extrabold text-red-500">${formatCurrency(goal.current_amount)}</p>
-                                </div>
-                                <div class="mt-3">
-                                    <div class="w-full bg-gray-200 rounded-full h-3">
-                                        <div class="h-3 rounded-full ${goal.color || 'bg-red-500'}" style="width: ${Math.min(100, percentage)}%"></div>
-                                    </div>
-                                    <div class="flex justify-between text-xs mt-1 text-gray-500">
-                                        <span>${percentage}% erreicht</span>
-                                        <span class="font-medium">Ziel: ${formatCurrency(goal.target_amount)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-        };
-
-        const renderBudgetPlannerDetails = () => {
-            const bank = getPiggyBank(selectedPiggyBankId);
-            if (!bank) { navigateTo('dashboard'); return; }
-            const bankBudgets = getBankBudgets(selectedPiggyBankId);
-            const totalAllocation = bankBudgets.reduce((sum, b) => sum + (parseFloat(b.allocation_percent || 0)), 0);
-
-            const content = document.getElementById('content');
-            content.innerHTML = `
-                <div class="flex justify-between items-center mb-6 pt-2">
-                    <h2 class="text-xl font-bold text-gray-700">Budget Planer für ${bank.name}</h2>
-                    <button onclick="openModal('addBudgetCategory')" class="flex items-center bg-primary-blue text-white px-3 py-1 text-sm rounded-full shadow-md hover:bg-indigo-600 transition">
-                        <span class="text-lg mr-1">+</span> Budget
-                    </button>
-                </div>
-
-                <div class="bg-card-light p-5 rounded-xl shadow-lg mb-6 text-center border-b-4 ${totalAllocation > 100 ? 'border-red-500' : 'border-primary-blue'}">
-                    <p class="text-xl font-extrabold ${totalAllocation > 100 ? 'text-red-500' : 'text-primary-blue'}">${totalAllocation}% Zuordnung</p>
-                    <p class="text-sm text-gray-500">Gesamt-Zuordnung des Sparschweins zu Budget-Kategorien (von Einzahlungen).</p>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4">
-                    ${bankBudgets.map(budget => {
-                        const usagePercentage = Math.round((budget.current_usage / (budget.monthly_limit || 1)) * 100);
-                        const progressBarColor = usagePercentage > 90 ? 'bg-red-500' : 'bg-primary-blue';
-
-                        return `
-                            <div class="p-4 bg-card-light rounded-xl shadow-md border-l-4 ${progressBarColor}">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <p class="text-lg font-bold text-gray-800">${budget.name}</p>
-                                        <p class="text-sm text-gray-500">Zuteilung: ${budget.allocation_percent}%</p>
-                                    </div>
-                                    <p class="text-xl font-extrabold text-primary-blue">${formatCurrency(budget.remaining_budget)}</p>
-                                </div>
-                                <div class="mt-3">
-                                    <div class="w-full bg-gray-200 rounded-full h-3">
-                                        <div class="h-3 rounded-full ${progressBarColor}" style="width: ${Math.min(100, usagePercentage)}%"></div>
-                                    </div>
-                                    <div class="flex justify-between text-xs mt-1 text-gray-500">
-                                        <span>${usagePercentage}% verbraucht</span>
-                                        <span class="font-medium">Limit: ${formatCurrency(budget.monthly_limit)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-                ${bankBudgets.length === 0 ? '<p class="text-center p-8 text-gray-500 italic">Noch keine Budget-Kategorien zugeordnet.</p>' : ''}
-            `;
-        };
-
-        const renderTransactions = () => {
-            const bank = getPiggyBank(selectedPiggyBankId);
-            if (!bank) { navigateTo('dashboard'); return; }
-            const allTransactions = getBankTransactions(selectedPiggyBankId);
-
-            const content = document.getElementById('content');
-            content.innerHTML = `
-                <h2 class="text-xl font-bold text-gray-700 mb-4 pt-2">Alle Bewegungen für ${bank.name}</h2>
-
-                <div class="bg-card-light rounded-xl shadow-lg overflow-hidden max-h-[80vh]">
-                    <div class="sticky top-0 bg-gray-100 flex justify-between p-3 font-semibold text-gray-600 text-sm border-b">
-                        <span class="w-1/5">Datum</span>
-                        <span class="w-2/5">Kommentar</span>
-                        <span class="w-1/5">Typ</span>
-                        <span class="w-1/5 text-right">Betrag</span>
+        switch (type) {
+            case 'withdrawal':
+                title = 'Geld abheben';
+                actionColor = 'bg-accent-pink';
+                modalContent = `
+                    <form id="withdrawal-form" class="space-y-4">
+                        <p class="text-gray-600 text-sm">Geld von Sparschwein "${bank.name}" abheben.</p>
+                        <div>
+                            <label for="withdrawal-amount" class="block text-sm font-medium text-gray-700">Betrag</label>
+                            <input type="number" step="0.01" id="withdrawal-amount" name="withdrawal-amount" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-accent-pink focus:border-accent-pink" placeholder="z.B. 2.50">
+                        </div>
+                        <div>
+                            <label for="withdrawal-note" class="block text-sm font-medium text-gray-700">Kommentar (Optional)</label>
+                            <input type="text" id="withdrawal-note" name="withdrawal-note" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="z.B. Eis gekauft">
+                        </div>
+                        <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Auszahlung bestätigen</button>
+                    </form>
+                `;
+                break;
+            case 'addPiggyBank':
+                title = 'Neues Sparschwein hinzufügen';
+                actionColor = 'bg-primary-blue';
+                modalContent = `
+                    <p class="text-gray-600 mb-6 text-center">Wie möchten Sie Ihr Sparschwein verbinden?</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="openModal('addBankManual')" class="flex flex-col items-center justify-center p-4 border-2 border-primary-blue text-primary-blue rounded-xl shadow-md hover:bg-primary-blue hover:text-white transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            <span class="font-bold text-sm">Manuell hinzufügen</span>
+                        </button>
+                        <button onclick="showNotification('QR-Code Scanner Funktion wird demnächst implementiert.', 'info')" class="flex flex-col items-center justify-center p-4 border-2 border-gray-400 text-gray-600 rounded-xl shadow-md hover:bg-gray-100 transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v.01M17 12h.01M10 12h.01M7 12h.01M19 19a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h10a2 2 0 012 2v10z" /></svg>
+                            <span class="font-bold text-sm">Code/QR-Scan</span>
+                        </button>
                     </div>
-                    <div class="divide-y divide-gray-100">
-                        ${allTransactions.map(t => `
-                            <div class="flex justify-between items-center p-3 hover:bg-gray-50 transition">
-                                <span class="w-1/5 text-xs text-gray-500">${formatTimestamp(t.created_at)}</span>
-                                <div class="w-2/5">
-                                    <p class="font-medium text-gray-800 text-sm truncate">${t.note || 'Kein Kommentar'}</p>
-                                </div>
-                                <span class="w-1/5 text-xs font-medium ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">${t.type === 'deposit' ? 'Einzahlung' : 'Auszahlung'}</span>
-                                <span class="w-1/5 text-right font-bold text-sm ${t.type === 'deposit' ? 'text-secondary-green' : 'text-accent-pink'}">
-                                    ${t.type === 'deposit' ? '+' : '-'}&nbsp;${formatCurrency(t.amount)}
-                                </span>
-                            </div>
-                        `).join('')}
+                `;
+                break;
+            case 'addBankManual':
+                title = 'Sparschwein verbinden';
+                actionColor = 'bg-primary-blue';
+                modalContent = `
+                    <form id="add-bank-manual-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Gerätecode</label>
+                            <input type="text" id="manual-device-id" required 
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-primary-blue focus:border-primary-blue"
+                                placeholder="z.B. AB12CD34">
+                        </div>
+                        <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">
+                            Sparschwein verbinden
+                        </button>
+                    </form>
+                `;
+                break;
+            case 'addGoal':
+                title = 'Neues Sparziel erstellen';
+                actionColor = 'bg-red-500';
+                modalContent = `
+                    <form id="goal-form" class="space-y-4">
+                        <div>
+                            <label for="goal-name" class="block text-sm font-medium text-gray-700">Name des Ziels</label>
+                            <input type="text" id="goal-name" name="goal-name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-red-500 focus:border-red-500">
+                        </div>
+                        <div>
+                            <label for="goal-target" class="block text-sm font-medium text-gray-700">Zielbetrag in EUR</label>
+                            <input type="number" step="0.01" id="goal-target" name="goal-target" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-red-500 focus:border-red-500" placeholder="z.B. 400.00">
+                        </div>
+                        <div class="mt-6 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <label for="goal-rate" class="block text-sm font-bold text-red-700">Zuteilungsrate auf Sparschwein (${bank.name}) in %</label>
+                            <input type="number" id="goal-rate" name="goal-rate" min="0" max="100" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-red-500 focus:border-red-500" placeholder="z.g. 30">
+                            <p class="text-xs text-red-500 mt-1">Dieser Anteil wird von Einzahlungen dieses Sparschweins dem Ziel gutgeschrieben.</p>
+                        </div>
+                        <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Ziel speichern</button>
+                    </form>
+                `;
+                break;
+            case 'addBudgetCategory':
+                title = 'Neue Budget-Kategorie erstellen';
+                actionColor = 'bg-secondary-green';
+                modalContent = `
+                    <form id="budget-category-form" class="space-y-4">
+                        <div>
+                            <label for="category-name" class="block text-sm font-medium text-gray-700">Name der Kategorie</label>
+                            <input type="text" id="category-name" name="category-name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-secondary-green focus:border-secondary-green">
+                        </div>
+                        <div>
+                            <label for="monthly-limit" class="block text-sm font-medium text-gray-700">Monatliches Limit in EUR</label>
+                            <input type="number" step="0.01" id="monthly-limit" name="monthly-limit" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-secondary-green focus:border-secondary-green" placeholder="z.B. 150.00">
+                        </div>
+                        <div class="mt-6 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <label for="allocation-rate" class="block text-sm font-bold text-green-700">Zuteilungsrate auf Sparschwein (${bank.name}) in %</label>
+                            <input type="number" id="allocation-rate" name="allocation-rate" min="0" max="100" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-secondary-green focus:border-secondary-green" placeholder="z.B. 50">
+                            <p class="text-xs text-green-500 mt-1">Dieser Anteil wird von Einzahlungen dieses Sparschweins dieser Kategorie zugeordnet.</p>
+                        </div>
+                        <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Kategorie speichern</button>
+                    </form>
+                `;
+                break;
+            default:
+                return;
+        }
+
+        container.innerHTML = `
+            <div id="modal-backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity z-40" onclick="closeModal()"></div>
+            <div id="modal" class="fixed inset-0 z-50 overflow-y-auto">
+                <div class="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
+                    <div class="relative bg-card-light rounded-xl shadow-2xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full p-6 w-full">
+                        <div class="flex justify-between items-center mb-4 border-b pb-3">
+                            <h3 class="text-2xl font-extrabold text-gray-800">${title}</h3>
+                            <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        ${modalContent}
                     </div>
                 </div>
-                ${allTransactions.length === 0 ? '<p class="text-center p-8 text-gray-500 italic">Noch keine Transaktionen vorhanden.</p>' : ''}
-            `;
-        };
+            </div>
+        `;
 
-        // ------------------------------------------------
-        // Modal management (same structure as before)
-        // ------------------------------------------------
-        const openModal = (type) => {
-            const container = document.getElementById('modal-container');
-            let modalContent = '';
-            let title = '';
-            let actionColor = 'bg-primary-blue';
-            const bank = getPiggyBank(selectedPiggyBankId);
+        // Attach form submit handler
+        document.getElementById('modal-container').querySelector('form')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formType = e.target.id === 'add-bank-manual-form' ? 'addBankManualSubmit' : type;
+            handleFormSubmit(formType, e.target);
+        });
+    };
 
-            if (['withdrawal', 'addGoal', 'addBudgetCategory'].includes(type) && !bank) return;
+    const closeModal = () => {
+        document.getElementById('modal-container').innerHTML = '';
+    };
 
+    const handleFormSubmit = async (type, form) => {
+        let successMessage = 'Vorgang erfolgreich!';
+
+        try {
             switch (type) {
                 case 'withdrawal':
-                    title = 'Geld abheben';
-                    actionColor = 'bg-accent-pink';
-                    modalContent = `
-                        <form id="withdrawal-form" class="space-y-4">
-                            <p class="text-gray-600 text-sm">Geld von Sparschwein "${bank.name}" abheben.</p>
-                            <div>
-                                <label for="withdrawal-amount" class="block text-sm font-medium text-gray-700">Betrag</label>
-                                <input type="number" step="0.01" id="withdrawal-amount" name="withdrawal-amount" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-accent-pink focus:border-accent-pink" placeholder="z.B. 2.50">
-                            </div>
-                            <div>
-                                <label for="withdrawal-note" class="block text-sm font-medium text-gray-700">Kommentar (Optional)</label>
-                                <input type="text" id="withdrawal-note" name="withdrawal-note" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="z.B. Eis gekauft">
-                            </div>
-                            <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Auszahlung bestätigen</button>
-                        </form>
-                    `;
+                    const amount = parseFloat(form['withdrawal-amount'].value);
+                    const note = form['withdrawal-note'].value;
+                    if (isNaN(amount) || amount <= 0) throw new Error('Ungültiger Betrag.');
+
+                    const bank = getPiggyBank(selectedPiggyBankId);
+                    if (parseFloat(bank.current_amount) < amount) throw new Error(`Nicht genügend Guthaben: ${formatCurrency(bank.current_amount)}.`);
+
+                    await addTransaction(selectedPiggyBankId, 'withdrawal', amount, note);
+                    successMessage = `${formatCurrency(amount)} Auszahlung verbucht.`;
                     break;
-                case 'addPiggyBank':
-                    title = 'Neues Sparschwein hinzufügen';
-                    actionColor = 'bg-primary-blue';
-                    modalContent = `
-                        <p class="text-gray-600 mb-6 text-center">Wie möchten Sie Ihr Sparschwein verbinden?</p>
-                        <div class="grid grid-cols-2 gap-4">
-                            <button onclick="openModal('addBankManual')" class="flex flex-col items-center justify-center p-4 border-2 border-primary-blue text-primary-blue rounded-xl shadow-md hover:bg-primary-blue hover:text-white transition duration-200">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                <span class="font-bold text-sm">Manuell hinzufügen</span>
-                            </button>
-                            <button onclick="showNotification('QR-Code Scanner Funktion wird demnächst implementiert.', 'info')" class="flex flex-col items-center justify-center p-4 border-2 border-gray-400 text-gray-600 rounded-xl shadow-md hover:bg-gray-100 transition duration-200">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v.01M17 12h.01M10 12h.01M7 12h.01M19 19a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h10a2 2 0 012 2v10z" /></svg>
-                                <span class="font-bold text-sm">Code/QR-Scan</span>
-                            </button>
-                        </div>
-                    `;
+
+                case 'addBankManualSubmit':
+                    const deviceId = form['manual-device-id'].value.trim();
+                    if (!deviceId) throw new Error('Bitte einen gültigen Gerätecode eingeben.');
+                    await claimPiggyBank(deviceId);
+                    successMessage = `Sparschwein erfolgreich verbunden!`;
                     break;
-                case 'addBankManual':
-    title = 'Sparschwein verbinden';
-    actionColor = 'bg-primary-blue';
-    modalContent = `
-        <form id="add-bank-manual-form" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Gerätecode</label>
-                <input type="text" id="manual-device-id" required 
-                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-primary-blue focus:border-primary-blue"
-                    placeholder="z.B. AB12CD34">
-            </div>
-            <button type="submit" 
-                class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">
-                Sparschwein verbinden
-            </button>
-        </form>
-    `;
-    break;
 
                 case 'addGoal':
-                    title = 'Neues Sparziel erstellen';
-                    actionColor = 'bg-red-500';
-                    modalContent = `
-                        <form id="goal-form" class="space-y-4">
-                            <div>
-                                <label for="goal-name" class="block text-sm font-medium text-gray-700">Name des Ziels</label>
-                                <input type="text" id="goal-name" name="goal-name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-red-500 focus:border-red-500">
-                            </div>
-                            <div>
-                                <label for="goal-target" class="block text-sm font-medium text-gray-700">Zielbetrag in EUR</label>
-                                <input type="number" step="0.01" id="goal-target" name="goal-target" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-red-500 focus:border-red-500" placeholder="z.B. 400.00">
-                            </div>
-                            <div class="mt-6 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <label for="goal-rate" class="block text-sm font-bold text-red-700">Zuteilungsrate auf Sparschwein (${bank.name}) in %</label>
-                                <input type="number" id="goal-rate" name="goal-rate" min="0" max="100" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-red-500 focus:border-red-500" placeholder="z.B. 30">
-                                <p class="text-xs text-red-500 mt-1">Dieser Anteil wird von Einzahlungen dieses Sparschweins dem Ziel gutgeschrieben.</p>
-                            </div>
-                            <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Ziel speichern</button>
-                        </form>
-                    `;
+                    const currentBankGoal = getPiggyBank(selectedPiggyBankId);
+                    if (!currentBankGoal) throw new Error('Kein Sparschwein ausgewählt.');
+
+                    const goalName = form['goal-name'].value;
+                    const goalTarget = parseFloat(form['goal-target'].value);
+                    const goalRate = parseInt(form['goal-rate'].value);
+
+                    if (isNaN(goalTarget) || goalTarget <= 0 || isNaN(goalRate) || goalRate < 0 || goalRate > 100) throw new Error('Ungültige Ziel-/Ratenwerte.');
+
+                    await addGoal(selectedPiggyBankId, goalName, goalTarget, goalRate);
+                    successMessage = `Sparziel "${goalName}" mit ${goalRate}% Zuteilung erstellt.`;
                     break;
+
                 case 'addBudgetCategory':
-                    title = 'Neue Budget-Kategorie erstellen';
-                    actionColor = 'bg-secondary-green';
-                    modalContent = `
-                        <form id="budget-category-form" class="space-y-4">
-                            <div>
-                                <label for="category-name" class="block text-sm font-medium text-gray-700">Name der Kategorie</label>
-                                <input type="text" id="category-name" name="category-name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-secondary-green focus:border-secondary-green">
-                            </div>
-                            <div>
-                                <label for="monthly-limit" class="block text-sm font-medium text-gray-700">Monatliches Limit in EUR</label>
-                                <input type="number" step="0.01" id="monthly-limit" name="monthly-limit" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-secondary-green focus:border-secondary-green" placeholder="z.B. 150.00">
-                            </div>
-                            <div class="mt-6 p-3 bg-green-50 border border-green-200 rounded-lg">
-                                <label for="allocation-rate" class="block text-sm font-bold text-green-700">Zuteilungsrate auf Sparschwein (${bank.name}) in %</label>
-                                <input type="number" id="allocation-rate" name="allocation-rate" min="0" max="100" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-secondary-green focus:border-secondary-green" placeholder="z.B. 50">
-                                <p class="text-xs text-green-500 mt-1">Dieser Anteil wird von Einzahlungen dieses Sparschweins dieser Kategorie zugeordnet.</p>
-                            </div>
-                            <button type="submit" class="w-full ${actionColor} text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Kategorie speichern</button>
-                        </form>
-                    `;
+                    const currentBankBudget = getPiggyBank(selectedPiggyBankId);
+                    if (!currentBankBudget) throw new Error('Kein Sparschwein ausgewählt.');
+
+                    const categoryName = form['category-name'].value;
+                    const monthlyLimit = parseFloat(form['monthly-limit'].value);
+                    const allocationRate = parseInt(form['allocation-rate'].value);
+
+                    if (isNaN(monthlyLimit) || monthlyLimit <= 0 || isNaN(allocationRate) || allocationRate < 0 || allocationRate > 100) throw new Error('Ungültige Limit-/Ratenwerte.');
+
+                    await addBudgetCategory(selectedPiggyBankId, categoryName, monthlyLimit, allocationRate);
+                    successMessage = `Budget-Kategorie "${categoryName}" mit ${allocationRate}% Zuteilung erstellt.`;
                     break;
+
                 default:
-                    return;
+                    throw new Error('Unbekannter Formulartyp.');
             }
 
-            container.innerHTML = `
-                <div id="modal-backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity z-40" onclick="closeModal()"></div>
-                <div id="modal" class="fixed inset-0 z-50 overflow-y-auto">
-                    <div class="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
-                        <div class="relative bg-card-light rounded-xl shadow-2xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full p-6 w-full">
-                            <div class="flex justify-between items-center mb-4 border-b pb-3">
-                                <h3 class="text-2xl font-extrabold text-gray-800">${title}</h3>
-                                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition">
-                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                </button>
-                            </div>
-                            ${modalContent}
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Da alle CRUD-Operationen Realtime-Events auslösen, wird die UI durch den Listener aktualisiert.
+            // Die Erfolgsmeldung wird hier angezeigt.
+            showNotification(successMessage, 'success');
+        } catch (error) {
+            console.error('Formularfehler:', error);
+            showNotification(error.message || 'Fehler im Formular.', 'error');
+        }
 
-            // Attach form submit handler
-            document.getElementById('modal-container').querySelector('form')?.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const formType = e.target.id === 'add-bank-manual-form' ? 'addBankManualSubmit' : type;
-                handleFormSubmit(formType, e.target);
-            });
-        };
+        closeModal();
+    };
 
-        const closeModal = () => {
-            document.getElementById('modal-container').innerHTML = '';
-        };
+    // Simple notification UI
+    const showNotification = (message, type = 'info') => {
+        const container = document.getElementById('modal-container');
+        const color = type === 'success' ? 'bg-secondary-green' : type === 'error' ? 'bg-red-500' : 'bg-primary-blue';
 
-        const handleFormSubmit = async (type, form) => {
-            let successMessage = 'Vorgang erfolgreich!';
+        const notification = document.createElement('div');
+        notification.className = `${color} text-white p-4 rounded-xl shadow-xl fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform scale-0 opacity-0 text-sm font-medium`;
+        notification.textContent = message;
 
-            try {
-                switch (type) {
-                    case 'withdrawal':
-                        const amount = parseFloat(form['withdrawal-amount'].value);
-                        const note = form['withdrawal-note'].value;
-                        if (isNaN(amount) || amount <= 0) throw new Error('Ungültiger Betrag.');
+        container.appendChild(notification);
 
-                        const bank = getPiggyBank(selectedPiggyBankId);
-                        if (parseFloat(bank.current_amount) < amount) throw new Error(`Nicht genügend Guthaben: ${formatCurrency(bank.current_amount)}.`);
+        setTimeout(() => {
+            notification.classList.remove('scale-0', 'opacity-0');
+            notification.classList.add('scale-100', 'opacity-100');
+        }, 50);
 
-                        await addTransaction(selectedPiggyBankId, 'withdrawal', amount, note);
-                        break;
+        setTimeout(() => {
+            notification.classList.remove('scale-100', 'opacity-100');
+            notification.classList.add('scale-0', 'opacity-0');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    };
 
-                    case 'addBankManualSubmit':
-    const deviceId = form['manual-device-id'].value.trim();
-    if (!deviceId) throw new Error('Bitte einen gültigen Gerätecode eingeben.');
-    await claimPiggyBank(deviceId);
-    break;
+    // ------------------------------------------------
+    // INITIALIZE: wire up form listeners, start auth
+    // ------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+        // Das Laden-Overlay bleibt am Anfang sichtbar.
+        document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
+        document.getElementById('toggle-auth-mode').addEventListener('click', toggleAuthMode);
 
+        // Start auth listener (kümmert sich um alle Zustände: keine Session, neue Session, Session wiederhergestellt)
+        setupSupabaseAuth();
+        
+        // Die App-Initialisierung und das Ausblenden des Overlays erfolgen jetzt garantiert über den onAuthStateChange-Listener.
+    });
 
-                    case 'addGoal':
-                        const currentBankGoal = getPiggyBank(selectedPiggyBankId);
-                        if (!currentBankGoal) throw new Error('Kein Sparschwein ausgewählt.');
+    // Expose functions to global scope used by inline HTML onclick attributes
+    window.navigateTo = navigateTo;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.goBack = goBack;
+    window.handleLogout = handleLogout;
 
-                        const goalName = form['goal-name'].value;
-                        const goalTarget = parseFloat(form['goal-target'].value);
-                        const goalRate = parseInt(form['goal-rate'].value);
+</script>
+    </div>
 
-                        if (isNaN(goalTarget) || goalTarget <= 0 || isNaN(goalRate) || goalRate < 0 || goalRate > 100) throw new Error('Ungültige Ziel-/Ratenwerte.');
-
-                        await addGoal(selectedPiggyBankId, goalName, goalTarget, goalRate);
-                        successMessage = `Sparziel "${goalName}" mit ${goalRate}% Zuteilung erstellt.`;
-                        break;
-
-                    case 'addBudgetCategory':
-                        const currentBankBudget = getPiggyBank(selectedPiggyBankId);
-                        if (!currentBankBudget) throw new Error('Kein Sparschwein ausgewählt.');
-
-                        const categoryName = form['category-name'].value;
-                        const monthlyLimit = parseFloat(form['monthly-limit'].value);
-                        const allocationRate = parseInt(form['allocation-rate'].value);
-
-                        if (isNaN(monthlyLimit) || monthlyLimit <= 0 || isNaN(allocationRate) || allocationRate < 0 || allocationRate > 100) throw new Error('Ungültige Limit-/Ratenwerte.');
-
-                        await addBudgetCategory(selectedPiggyBankId, categoryName, monthlyLimit, allocationRate);
-                        successMessage = `Budget-Kategorie "${categoryName}" mit ${allocationRate}% Zuteilung erstellt.`;
-                        break;
-
-                    default:
-                        throw new Error('Unbekannter Formulartyp.');
-                }
-
-                showNotification(successMessage, 'success');
-            } catch (error) {
-                console.error('Formularfehler:', error);
-                showNotification(error.message || 'Fehler im Formular.', 'error');
-            }
-
-            closeModal();
-        };
-
-        // Simple notification UI
-        const showNotification = (message, type = 'info') => {
-            const container = document.getElementById('modal-container');
-            const color = type === 'success' ? 'bg-secondary-green' : type === 'error' ? 'bg-red-500' : 'bg-primary-blue';
-
-            const notification = document.createElement('div');
-            notification.className = `${color} text-white p-4 rounded-xl shadow-xl fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform scale-0 opacity-0 text-sm font-medium`;
-            notification.textContent = message;
-
-            container.appendChild(notification);
-
-            setTimeout(() => {
-                notification.classList.remove('scale-0', 'opacity-0');
-                notification.classList.add('scale-100', 'opacity-100');
-            }, 50);
-
-            setTimeout(() => {
-                notification.classList.remove('scale-100', 'opacity-100');
-                notification.classList.add('scale-0', 'opacity-0');
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        };
-
-        // ------------------------------------------------
-        // INITIALIZE: wire up form listeners, start auth
-        // ------------------------------------------------
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('loading-overlay').classList.remove('hidden');
-            document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
-            document.getElementById('toggle-auth-mode').addEventListener('click', toggleAuthMode);
-
-            // Start auth listener
-            setupSupabaseAuth();
-        });
-
-        // Expose some functions to global scope used by inline HTML onclick attributes
-        window.navigateTo = navigateTo;
-        window.openModal = openModal;
-        window.closeModal = closeModal;
-        window.goBack = goBack;
-        window.handleLogout = handleLogout;
-
-        // Provide a small utility to start listeners manually (if needed)
-        window.__startSupabaseListeners = startSupabaseListeners;
-    </script>
 </body>
 </html>
