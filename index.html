@@ -311,100 +311,39 @@
     // ------------------------------------------------
     // AUTH & INITIALIZATION
     // ------------------------------------------------
-    const setupSupabaseAuth = () => {
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const authView = document.getElementById('auth-view');
-        const mainAppView = document.getElementById('main-app-view');
-        const userIdDisplay = document.getElementById('display-user-id');
+    /**
+     * KORRIGIERT: Entfernt den Aufruf zu ensureProfileRow.
+     * Geht direkt zu fetchAllData über.
+     */
+        const setupSupabaseAuth = () => {
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                const loginScreen = document.getElementById('auth-screen');
+                const appScreen = document.getElementById('app-screen');
 
-        // Auth state listener
-        supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log('Auth event', event);
-            isAuthReady = true; // Setze dies sofort, sobald der Listener ausgelöst wird
-
-            if (session && session.user) {
-                try {
+                if (event === 'SIGNED_IN' && session) {
+                    // Erfolgreich eingeloggt
                     userId = session.user.id;
 
-                    // WICHTIG: alte Listener entfernen bevor neue starten
-                    stopSupabaseListeners();
-
-                    // Prüfe und erstelle Benutzerprofil in der Datenbank
-                    await ensureProfileRow(session.user);
-
-                    // Startet Realtime + lädt Daten (mit await)
-                    await startSupabaseListeners();
-
-                    // UI umschalten
-                    authView.classList.add('hidden');
-                    mainAppView.classList.remove('hidden');
-                    userIdDisplay.textContent = userId;
-
-                } catch (error) {
-                    // Falls beim Laden der Daten (z.B. durch RLS-Fehler) ein kritischer Fehler auftritt
-                    console.error("Kritischer Fehler beim Laden der Daten nach dem Login:", error);
-                    showNotification('Kritischer Fehler beim Laden der Daten. Bitte prüfen Sie die RLS-Regeln.', 'error');
+                    // !!! HIER WURDE ensureProfileRow(userId) ENTFERNT !!!
                     
-                    // Notfall-UI-Umschaltung
-                    authView.classList.add('hidden');
-                    mainAppView.classList.remove('hidden');
-                } finally {
-                    // GARANTIERT: Das Lade-Overlay verschwindet immer, auch bei Fehlern.
-                    loadingOverlay.classList.add('hidden');
+                    // Nun direkt zur Dateninitialisierung übergehen
+                    await fetchAllData(); 
+                    
+                    loginScreen.classList.add('hidden');
+                    appScreen.classList.remove('hidden');
+                    console.log("SIGNED_IN: UI auf App-Ansicht umgeschaltet.");
+
+                } else if (event === 'SIGNED_OUT' || !session) {
+                    // Ausgeloggt oder keine Session
+                    userId = null;
+                    appScreen.classList.add('hidden');
+                    loginScreen.classList.remove('hidden');
+                    // Lade-Overlay muss jetzt ausgeblendet werden
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                    console.log("SIGNED_OUT: UI auf Login-Ansicht umgeschaltet.");
                 }
-
-            } else {
-                // session null -> logged out
-                userId = null;
-                
-                stopSupabaseListeners();
-
-                userIdDisplay.textContent = 'ANONYM/NICHT EINGELOGGT';
-                authView.classList.remove('hidden');
-                mainAppView.classList.add('hidden');
-                
-                // Ladevorgang beenden, um Login-Formular anzuzeigen
-                loadingOverlay.classList.add('hidden');
-            }
-        });
-
-        // HINZUFÜGEN: Fallback-Timeout für den Fall, dass der Listener nicht ausgelöst wird (z.B. Netzwerk-Fehler)
-        const MAX_LOAD_TIME_MS = 6000; 
-        setTimeout(() => {
-            // Wenn nach 6s die Initialisierung noch nicht abgeschlossen ist UND das Overlay noch sichtbar ist
-            if (!isAuthReady && !loadingOverlay.classList.contains('hidden')) {
-                console.warn('Initialisierung von Supabase Auth hat zu lange gedauert (Timeout). Zeige Login-Formular an.');
-                
-                // Beende Ladezustand und zeige Login-Ansicht
-                loadingOverlay.classList.add('hidden');
-                authView.classList.remove('hidden');
-                showNotification('Verbindungsproblem: Die Initialisierung der App ist fehlgeschlagen. Netzwerk prüfen.', 'error');
-            }
-        }, MAX_LOAD_TIME_MS);
-    };
-
-    // Ensure profile row exists in public.users with id = auth.user.id
-    const ensureProfileRow = async (authUser) => {
-        try {
-            const { data: existing, error: selError } = await supabase
-                .from(COLLECTIONS.USERS)
-                .select('id,email')
-                .eq('id', authUser.id)
-                .limit(1);
-
-            if (selError) throw selError;
-
-            if (!existing || existing.length === 0) {
-                const { error: insertError } = await supabase
-                    .from(COLLECTIONS.USERS)
-                    .insert({ id: authUser.id, email: authUser.email || '' });
-                if (insertError) console.warn('Could not create profile row:', insertError.message);
-            }
-        } catch (err) {
-            console.error('ensureProfileRow error:', err);
-            throw err; // Werfe den Fehler weiter, damit die try/finally-Logik in onAuthStateChange ihn erfasst.
-        }
-    };
+            });
+        };  
 
     // Robustes Logout: signOut, clear storage, UI update
     const handleLogout = async () => {
