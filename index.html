@@ -232,7 +232,7 @@
     // STATE
     // ------------------------------------------------
     let userId = null; // Wird auf die auth.user.id gesetzt
-    let isAuthReady = false;
+    let isAuthReady = false; // Wird auf true gesetzt, sobald Supabase den Auth-Status bestimmt hat
     let currentView = 'dashboard';
     let selectedPiggyBankId = null;
 
@@ -320,7 +320,7 @@
         // Auth state listener
         supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth event', event);
-            isAuthReady = true;
+            isAuthReady = true; // Setze dies sofort, sobald der Listener ausgelöst wird
 
             if (session && session.user) {
                 try {
@@ -367,6 +367,20 @@
                 loadingOverlay.classList.add('hidden');
             }
         });
+
+        // HINZUFÜGEN: Fallback-Timeout für den Fall, dass der Listener nicht ausgelöst wird (z.B. Netzwerk-Fehler)
+        const MAX_LOAD_TIME_MS = 6000; 
+        setTimeout(() => {
+            // Wenn nach 6s die Initialisierung noch nicht abgeschlossen ist UND das Overlay noch sichtbar ist
+            if (!isAuthReady && !loadingOverlay.classList.contains('hidden')) {
+                console.warn('Initialisierung von Supabase Auth hat zu lange gedauert (Timeout). Zeige Login-Formular an.');
+                
+                // Beende Ladezustand und zeige Login-Ansicht
+                loadingOverlay.classList.add('hidden');
+                authView.classList.remove('hidden');
+                showNotification('Verbindungsproblem: Die Initialisierung der App ist fehlgeschlagen. Netzwerk prüfen.', 'error');
+            }
+        }, MAX_LOAD_TIME_MS);
     };
 
     // Ensure profile row exists in public.users with id = auth.user.id
@@ -484,7 +498,7 @@
     const startSupabaseListeners = async () => {
         if (!userId) return;
 
-        // Fetchen der initialen Daten
+        // Fetchen der initialen Daten (jetzt parallel!)
         await fetchAllData();
 
         // 150ms warten, verhindert App-Freeze nach Resume (kann beibehalten werden)
@@ -537,62 +551,57 @@
         subscriptions.push(budgetsSub);
     };
 
+    /**
+     * NEU: Führt alle 6 Datenbankabfragen parallel aus, um die Ladezeit zu verkürzen.
+     */
     const fetchAllData = async () => {
         if (!userId) return;
         try {
-            // 1. PiggyBanks
-            let { data: banks, error: banksErr } = await supabase
-                .from(COLLECTIONS.BANKS)
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
+            // Alle Abfragen parallel starten (Promise.all)
+            const [
+                { data: banks, error: banksErr },
+                { data: goals, error: goalsErr },
+                { data: allocs, error: allocErr },
+                { data: trans, error: transErr },
+                { data: cats, error: catsErr },
+                { data: ballocs, error: ballocErr }
+            ] = await Promise.all([
+                // 1. PiggyBanks
+                supabase.from(COLLECTIONS.BANKS).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+                // 2. SavingGoals
+                supabase.from(COLLECTIONS.GOALS).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+                // 3. GoalAllocations (JOIN für Filterung)
+                supabase.from(COLLECTIONS.ALLOCATIONS).select('*, piggybank:physical_piggybanks!inner(user_id)'),
+                // 4. Transactions
+                supabase.from(COLLECTIONS.TRANSACTIONS).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+                // 5. BudgetCategories
+                supabase.from(COLLECTIONS.CATEGORIES).select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+                // 6. BudgetAllocations (JOIN für Filterung)
+                supabase.from(COLLECTIONS.BUDGETS).select('*, piggybank:physical_piggybanks!inner(user_id)')
+            ]);
+
+            // Fehlerbehandlung
             if (banksErr) throw banksErr;
-            piggyBanks = banks || [];
-
-            // 2. SavingGoals
-            let { data: goals, error: goalsErr } = await supabase
-                .from(COLLECTIONS.GOALS)
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
             if (goalsErr) throw goalsErr;
-            savingGoals = goals || [];
-
-            // 3. GoalAllocations (müssen manuell auf Basis von PiggyBanks gefiltert werden)
-            let { data: allocs, error: allocErr } = await supabase
-                .from(COLLECTIONS.ALLOCATIONS)
-                .select('*, piggybank:physical_piggybanks!inner(user_id)'); // JOIN für Filterung
             if (allocErr) throw allocErr;
+            if (transErr) throw transErr;
+            if (catsErr) throw catsErr;
+            if (ballocErr) throw ballocErr;
+
+            // Zuweisung der Daten
+            piggyBanks = banks || [];
+            savingGoals = goals || [];
+            transactions = trans || [];
+            budgetCategories = cats || [];
+            
+            // Manuelle Filterung der Allocation-Daten (JOIN-Ergebnis bereinigen)
             goalAllocations = (allocs || [])
                 .filter(a => a.piggybank.user_id === userId)
                 .map(a => {
                     const { piggybank, ...rest } = a;
                     return rest;
                 });
-
-            // 4. Transactions
-            let { data: trans, error: transErr } = await supabase
-                .from(COLLECTIONS.TRANSACTIONS)
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
-            if (transErr) throw transErr;
-            transactions = trans || [];
-
-            // 5. BudgetCategories
-            let { data: cats, error: catsErr } = await supabase
-                .from(COLLECTIONS.CATEGORIES)
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
-            if (catsErr) throw catsErr;
-            budgetCategories = cats || [];
-
-            // 6. BudgetAllocations (müssen manuell auf Basis von PiggyBanks gefiltert werden)
-            let { data: ballocs, error: ballocErr } = await supabase
-                .from(COLLECTIONS.BUDGETS)
-                .select('*, piggybank:physical_piggybanks!inner(user_id)'); // JOIN für Filterung
-            if (ballocErr) throw ballocErr;
+                
             budgetAllocations = (ballocs || [])
                 .filter(a => a.piggybank.user_id === userId)
                  .map(a => {
@@ -618,7 +627,6 @@
     await fetchAllData();
     updateUI();
 };
-
 
 
     // ------------------------------------------------
@@ -1352,7 +1360,8 @@
         // Start auth listener (kümmert sich um alle Zustände: keine Session, neue Session, Session wiederhergestellt)
         setupSupabaseAuth();
         
-        // Die App-Initialisierung und das Ausblenden des Overlays erfolgen jetzt garantiert über den onAuthStateChange-Listener.
+        // Die App-Initialisierung und das Ausblenden des Overlays erfolgen jetzt garantiert über den onAuthStateChange-Listener
+        // ODER durch den neuen Timeout.
     });
 
     // Expose functions to global scope used by inline HTML onclick attributes
