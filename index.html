@@ -41,11 +41,10 @@
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-        const SUPABASE_URL =
-            "https://kfonoowhnbvliggpwzxc.supabase.co";
+        // BITTE HIER DEINE ECHTE SUPABASE URL UND DEINEN ECHTEN ANON KEY EINFÜGEN!
+        const SUPABASE_URL = "https://kfonoowhnbvliggpwzxc.supabase.co";
 
-        const SUPABASE_ANON_KEY =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmb25vb3dobmJ2bGlnZ3B3enhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MzQ1MDksImV4cCI6MjA3OTUxMDUwOX0.-To4sVg7o5Uxx3jNpAcWmurC2lGPVPmj-Em1wW_eNyk";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtmb25vb3dobmJ2bGlnZ3B3enhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MzQ1MDksImV4cCI6MjA3OTUxMDUwOX0.-To4sVg7o5Uxx3jNpAcWmurC2lGPVPmj-Em1wW_eNyk";
 
         window.supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
@@ -253,7 +252,7 @@
         TRANSACTIONS: 'transactions',
         CATEGORIES: 'budget_categories',
         BUDGETS: 'piggybank_budget_allocations',
-        USERS: 'users'
+        USERS: 'auth.users'
     };
 
     // ------------------------------------------------
@@ -312,38 +311,50 @@
     // AUTH & INITIALIZATION
     // ------------------------------------------------
     /**
-     * KORRIGIERT: Entfernt den Aufruf zu ensureProfileRow.
-     * Geht direkt zu fetchAllData über.
+     * KORRIGIERT: Verwendet die korrekten IDs ('auth-view', 'main-app-view', 'loading-overlay')
+     * und fügt eine kritische Null-Prüfung hinzu, um den TypeError zu verhindern.
      */
-        const setupSupabaseAuth = () => {
-            supabase.auth.onAuthStateChange(async (event, session) => {
-                const loginScreen = document.getElementById('auth-screen');
-                const appScreen = document.getElementById('app-screen');
+    const setupSupabaseAuth = () => {
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            const loginScreen = document.getElementById('auth-view'); 
+            const appScreen = document.getElementById('main-app-view'); 
+            const loadingOverlay = document.getElementById('loading-overlay'); 
+            const userIdDisplay = document.getElementById('display-user-id');
 
-                if (event === 'SIGNED_IN' && session) {
-                    // Erfolgreich eingeloggt
-                    userId = session.user.id;
+            // 🛑 KRITISCHER FIX: Abfangen des TypeError: Cannot read properties of null
+            if (!loginScreen || !appScreen || !loadingOverlay) {
+                 console.error("KRITISCHER FEHLER: UI-Elemente (auth-view, main-app-view oder loading-overlay) wurden nicht gefunden.");
+                 return; // Abbruch der Funktion, um den TypeError zu verhindern
+            }
 
-                    // !!! HIER WURDE ensureProfileRow(userId) ENTFERNT !!!
-                    
-                    // Nun direkt zur Dateninitialisierung übergehen
-                    await fetchAllData(); 
-                    
-                    loginScreen.classList.add('hidden');
-                    appScreen.classList.remove('hidden');
-                    console.log("SIGNED_IN: UI auf App-Ansicht umgeschaltet.");
+            if (event === 'SIGNED_IN' && session) {
+                // Erfolgreich eingeloggt
+                userId = session.user.id;
+                if (userIdDisplay) userIdDisplay.textContent = userId; // User ID anzeigen
 
-                } else if (event === 'SIGNED_OUT' || !session) {
-                    // Ausgeloggt oder keine Session
-                    userId = null;
-                    appScreen.classList.add('hidden');
-                    loginScreen.classList.remove('hidden');
-                    // Lade-Overlay muss jetzt ausgeblendet werden
-                    document.getElementById('loading-overlay').classList.add('hidden');
-                    console.log("SIGNED_OUT: UI auf Login-Ansicht umgeschaltet.");
-                }
-            });
-        };  
+                // !!! HIER WURDE ensureProfileRow(userId) ENTFERNT !!!
+                
+                // Nun direkt zur Dateninitialisierung übergehen
+                await fetchAllData(); 
+                
+                // UI-Umschaltung
+                loginScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
+                loadingOverlay.classList.add('hidden'); // Overlay ausblenden
+                console.log("SIGNED_IN: UI auf App-Ansicht umgeschaltet.");
+
+            } else if (event === 'SIGNED_OUT' || !session) {
+                // Ausgeloggt oder keine Session
+                userId = null;
+                if (userIdDisplay) userIdDisplay.textContent = 'Ausgeloggt'; // User ID anzeigen
+                appScreen.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+                // Lade-Overlay muss jetzt ausgeblendet werden
+                loadingOverlay.classList.add('hidden');
+                console.log("SIGNED_OUT: UI auf Login-Ansicht umgeschaltet.");
+            }
+        });
+    };  
 
     // Robustes Logout: signOut, clear storage, UI update
     const handleLogout = async () => {
@@ -351,6 +362,7 @@
             // Erstens: signOut bei Supabase
             await supabase.auth.signOut();
             showNotification('Erfolgreich abgemeldet.', 'success');
+            // Die UI-Umschaltung erfolgt über den onAuthStateChange-Listener
         } catch (error) {
             console.error('Logout error:', error);
             showNotification('Fehler beim Abmelden.', 'error');
@@ -437,8 +449,9 @@
     const startSupabaseListeners = async () => {
         if (!userId) return;
 
-        // Fetchen der initialen Daten (jetzt parallel!)
-        await fetchAllData();
+        // KORRIGIERT: fetchAllData() wird NICHT erneut aufgerufen,
+        // da es bereits vom Auth-Handler (setupSupabaseAuth) beim Einloggen erfolgt ist.
+        // await fetchAllData(); // ENTFERNT, um Endlosschleife/Blockierung zu beheben.
 
         // 150ms warten, verhindert App-Freeze nach Resume (kann beibehalten werden)
         await new Promise(res => setTimeout(res, 150));
@@ -490,13 +503,6 @@
         subscriptions.push(budgetsSub);
     };
 
-    /**
-     * NEU: Führt alle 6 Datenbankabfragen parallel aus, um die Ladezeit zu verkürzen.
-     */
-    /**
-     * KORRIGIERT: Führt die Abfragen sequenziell/parallel in einer RLS-freundlichen Weise aus,
-     * indem Allocation-Filterungen auf expliziten Piggybank-IDs basieren.
-     */
     /**
      * KORRIGIERT & ERWEITERT: Führt die Abfragen mit Logging aus, um den Fortschritt zu verfolgen.
      * BITTE BEACHTEN: Dies ersetzt die komplette fetchAllData Funktion in Ihrer index.html.
@@ -600,7 +606,7 @@
                 console.error("Detail:", error);
                 showNotification('Fehler beim Laden der App-Daten. (Details in der Konsole)', 'error');
             }
-            // Stellt sicher, dass das Lade-Overlay ausgeblendet wird, selbst wenn ein Fehler auftritt.
+            // Stellt sicher, dass die UI den Fehlerzustand behandelt (z.B. indem sie versucht, die aktuelle Ansicht zu rendern).
             updateUI(); 
         }
         console.log("-----------------------------------------");
@@ -755,7 +761,15 @@
     };
 
     const updateUI = () => {
-        if (!isAuthReady || !userId) return;
+        if (!isAuthReady && userId) {
+            // Dies ist ein Edge-Case, falls updateUI() vor dem ersten AuthStateChange aufgerufen wird.
+            // Im korrigierten Code sollte dies nicht passieren.
+            // Ist isAuthReady nicht definiert? Ja, let isAuthReady = false; ist definiert, aber nie auf true gesetzt.
+            // Fügen Sie es am Ende von fetchAllData ein, um die Logik zu vereinfachen, falls gewünscht.
+        }
+        
+        // HINWEIS: Um die ursprüngliche Logik beizubehalten, lassen wir das isAuthReady-Flag hier unberücksichtigt, 
+        // da es im ursprünglichen Code nur auf 'false' initialisiert wurde.
 
         const headerTitle = document.getElementById('header-title');
         const backButton = document.getElementById('back-button');
